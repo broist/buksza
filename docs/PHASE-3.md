@@ -1,6 +1,6 @@
 # 3. fázis – esti rögzítés, rendszeres tételek és emlékeztetők
 
-Állapot: **a helyben ellenőrizhető funkciók elkészültek; az AWS/HTTPS telepítés és a tényleges iPhone-os fogadási próba még hátravan.** A felhasználó engedélyezte a 3. fázis folytatását. A 4. fázis további moduljai még nem készülnek.
+Állapot (2026.10.15.): **a funkciók és az AWS/HTTPS telepítés elkészültek; a tényleges iPhone-os fogadási próba még hátravan.** A felhasználó sikeres telepítést jelzett; a `https://buksza.duktor.hu/up` és `/belepes` HTTPS-en 200 választ ad. A 4. fázis további moduljai még nem készültek el.
 
 ## A felületen kipróbálható
 
@@ -32,4 +32,4 @@ A Web Push `aes128gcm` titkosítást és VAPID-aláírást használ. A privát k
 
 ## Ami még nem ellenőrzött
 
-Az iPhone-os fogadást és az AWS-en folyamatosan működő ütemezőt még ténylegesen ellenőrizni kell. A megadott telepítési cél **Ubuntu, duktor.hu**; a szerver jelenleg nincs előkészítve. A helyi fejlesztői kiszolgálás nem a végleges AWS-kiadás. A telepítés és készülékpróba nélkül a telefonos értesítést nem tekintjük élesnek, és a SPEC erre vonatkozó elfogadási pontja még nincs kipipálva.
+Az iPhone-os fogadást, az AWS-en folyamatosan működő ütemező életjelét és az első ütemezett mentést még ellenőrizni kell. Az éles telepítés már működik **Ubuntu 24.04, buksza.duktor.hu**, `/opt/buksza` alatt, a meglévő Nginx mögött. A készülékpróba nélkül a telefonos értesítés SPEC-ben szereplő elfogadási pontja még nincs kipipálva. A telepítési ellenőrzések óta a backendtesztek száma 54 (797 állítás); a csomagolt Linux-forrásból épített képekkel HTTPS-es belépés, tételrögzítés, adat-/munkamenet-megőrzés és PWA-próba is sikeres.

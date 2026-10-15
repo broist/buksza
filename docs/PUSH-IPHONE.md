@@ -2,9 +2,9 @@
 
 ## Jelenlegi állapot
 
-A szerveroldali napi/hónap végi ütemezés, titkosított Web Push küldés, eszközregisztráció és próbaértesítés elkészült. A helyi HTTP/Wi-Fi-cím használható a pénzügyek rögzítésére, de erről az iPhone nem regisztrálható Web Push-ra. A tényleges telefonos fogadás még nincs ellenőrizve: az AWS-szerver nincs előkészítve.
+A szerveroldali napi/hónap végi ütemezés, titkosított Web Push küldés, eszközregisztráció és próbaértesítés elkészült. Az AWS-telepítést a felhasználó 2026.10.15-én sikeresnek jelezte; a `https://buksza.duktor.hu/up` és a belépési oldal HTTPS-en 200 választ ad. A tényleges iPhone-os fogadás és az éles ütemező életjele még ellenőrizendő.
 
-A felhasználó megadta a telepítés célját: **Ubuntu, `buksza.duktor.hu`, `35.158.45.80`** (2026.10.15-i döntés). A DNS-t a felhasználó Cloudflare-ben kezeli; a telepítő IP-ellenőrzése miatt kezdetben DNS only rekord szükséges. A felhasználó egy saját maga által futtatható scriptet kért; elkészült a dist/buksza-telepito.sh egyfájlos Ubuntu-telepítő. Használat: [TELEPITES-UBUNTU.md](TELEPITES-UBUNTU.md). A szerverre történő tényleges telepítés és készülékpróba továbbra is hátravan.
+A felhasználó megadta a telepítés célját: **Ubuntu, `buksza.duktor.hu`, `35.158.45.80`** (2026.10.15-i döntés). A DNS-t a felhasználó Cloudflare-ben kezeli; a telepítő IP-ellenőrzése miatt kezdetben DNS only rekord szükséges. A felhasználó egy saját maga által futtatható scriptet kért; elkészült a dist/buksza-telepito.sh egyfájlos Ubuntu-telepítő. Használat: [TELEPITES-UBUNTU.md](TELEPITES-UBUNTU.md). A szerverre történő telepítés elkészült; a készülékpróba továbbra is hátravan.
 
 ## Szerver előkészítése
 
@@ -16,7 +16,7 @@ A végleges AWS-telepítésnél szükséges:
 4. Folyamatosan futó `php artisan schedule:work` külön Docker-szolgáltatásban. A helyi `compose.yaml` már tartalmazza a `scheduler` szolgáltatást. A Beállítások oldalon látszik, érkezett-e friss ütemező-életjel.
 5. A kiszolgáló elérje a böngésző értesítési szolgáltatóját HTTPS-en. A PWA ikonok, manifest és `/sw.js` ugyanazon az alkalmazáscímen legyenek elérhetők.
 
-Az Ubuntu-telepítő külön PHP-FPM/Nginx/Caddy környezetet és napi mentést készít. A helyi fejlesztői kiszolgálás ettől külön marad; a tényleges AWS/HTTPS elérés a szerveren igazolandó.
+Az Ubuntu-telepítő ezen a szerveren PHP-FPM-et, belső Docker Nginxet, ütemezőt és napi mentést készített. A HTTPS-t a meglévő Ubuntu Nginx és a Buksza saját Certbot-tanúsítványa kezeli (`--existing-nginx`). A helyi fejlesztői kiszolgálás ettől külön marad.
 
 ## Telefonos beállítás és átvételi próba
 

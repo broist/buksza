@@ -492,7 +492,7 @@ A fejlesztő (Codex) választhat másik stacket, de ez a javaslat:
 
 ## 10. Fejlesztési fázisok (jóváhagyott terv)
 
-A felhasználó jóváhagyta a fejlesztés indítását és folytatását. Az 1. fázis elkészült: [PHASE-1.md](PHASE-1.md). A 2. fázis is elkészült: [PHASE-2.md](PHASE-2.md). A 3. fázis folytatását is jóváhagyta a felhasználó: a helyi funkciók elkészültek, [PHASE-3.md](PHASE-3.md). A tényleges iPhone-push/AWS ellenőrzés még hátravan; a cél Ubuntu, duktor.hu. A 4. fázis többi modulja előtt új jóváhagyás szükséges.
+A felhasználó jóváhagyta a fejlesztés indítását és folytatását. Az 1. fázis elkészült: [PHASE-1.md](PHASE-1.md). A 2. fázis is elkészült: [PHASE-2.md](PHASE-2.md). A 3. fázis folytatását is jóváhagyta a felhasználó: a helyi funkciók elkészültek, [PHASE-3.md](PHASE-3.md). A felhasználó 2026.10.15-én sikeres AWS-telepítést jelzett: Ubuntu, buksza.duktor.hu, /opt/buksza; HTTPS /up és /belepes ellenőrzés: 200. Az iPhone-push tényleges fogadása, az éles ütemező életjele és az első ütemezett mentés még ellenőrizendő. A 4. fázis többi modulja előtt új jóváhagyás szükséges.
 
 Minden képernyő először **360 px széles telefonra** készül, és az ellenőrzött mobilnézet után bővül asztalira. Minden fázis végén bemutató és az ellenőrzések eredményének ismertetése következik, majd megállás; a következő fázis a felhasználó jóváhagyásával indul. A specifikáció bővítése önmagában nem engedély a kódolás megkezdésére.
 
