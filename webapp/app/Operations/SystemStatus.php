@@ -10,6 +10,7 @@ final class SystemStatus
     public function forUser(int $user): array
     {
         $now = CarbonImmutable::now('UTC');
+        $categoryNames = DB::table('categories')->pluck('name', 'id');
         $seen = DB::table('scheduler_heartbeats')->where('name', 'reminders')->value('last_seen_at');
         $heartbeat = $seen ? CarbonImmutable::parse($seen, 'UTC') : null;
         $age = $heartbeat ? $heartbeat->diffInSeconds($now, false) : null;
@@ -32,7 +33,7 @@ final class SystemStatus
             'deliveries' => DB::table('push_deliveries')->join('push_devices', 'push_devices.id', '=', 'push_deliveries.device_id')->where('push_devices.user_id', $user)
                 ->orderByDesc('push_deliveries.attempted_at')->orderByDesc('push_deliveries.id')->limit(20)
                 ->get(['push_deliveries.id', 'push_devices.name as device_name', 'push_deliveries.kind', 'push_deliveries.status', 'push_deliveries.attempted_at', 'push_deliveries.sent_at'])
-                ->map(fn ($row) => [...(array) $row, 'attempted_at' => $row->attempted_at ? CarbonImmutable::parse($row->attempted_at, config('app.timezone'))->toIso8601String() : null, 'sent_at' => $row->sent_at ? CarbonImmutable::parse($row->sent_at, config('app.timezone'))->toIso8601String() : null])->all(),
+                ->map(fn ($row) => [...(array) $row, 'category_name' => str_starts_with($row->kind, 'budget:') ? ($categoryNames[(int) substr($row->kind, 7)] ?? null) : null, 'attempted_at' => $row->attempted_at ? CarbonImmutable::parse($row->attempted_at, config('app.timezone'))->toIso8601String() : null, 'sent_at' => $row->sent_at ? CarbonImmutable::parse($row->sent_at, config('app.timezone'))->toIso8601String() : null])->all(),
         ];
     }
 

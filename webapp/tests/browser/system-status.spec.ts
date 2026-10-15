@@ -13,7 +13,7 @@ test('operational status is readable on phones and refreshes without touching se
     const section=page.getByRole('region',{name:'Működési állapot és mentések'});
     await expect(section).toBeVisible();
     await expect(section).toContainText('A mentés állapota nem ellenőrizhető');
-    await expect(section).toContainText('Még nincs ütemezett értesítésküldés rögzítve.');
+    await expect(section).toContainText('Még nincs értesítésküldés rögzítve.');
     const savings=page.getByLabel(/^Havi családi megtakarítási cél/);
     await savings.fill('17');
     const request=page.waitForRequest(req=>req.headers()['x-inertia-partial-data']==='systemStatus');

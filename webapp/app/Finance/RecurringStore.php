@@ -17,7 +17,10 @@ final class RecurringStore
         $transactions = Transaction::withTrashed()->whereNotNull('template_id')->get()->toArray();
         $start = new \DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));
 
-        return ['templates' => $templates, 'occurrences' => (new RecurringPlanner)->month($templates, $versions, $transactions, Loan::all()->toArray(), $loanVersions, $year, $month),
+        $planner = new RecurringPlanner;
+        $occurrences = $planner->month($templates, $versions, $transactions, Loan::all()->toArray(), $loanVersions, $year, $month);
+
+        return ['templates' => $templates, 'occurrences' => $occurrences, 'changes' => $planner->amountChanges($occurrences, $transactions),
             'candidates' => Transaction::whereNull('template_id')->whereBetween('date', [$start->modify('-1 month')->format('Y-m-d'), $start->modify('+2 months')->modify('-1 day')->format('Y-m-d')])->orderByDesc('date')->get()->toArray()];
     }
 }

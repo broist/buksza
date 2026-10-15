@@ -6,6 +6,38 @@ use DateTimeImmutable;
 
 final class RecurringPlanner
 {
+    public function amountChanges(array $occurrences, array $transactions): array
+    {
+        $changes = [];
+        foreach ($occurrences as $occurrence) {
+            if (! $occurrence['paid']) {
+                continue;
+            }
+            $current = collect($transactions)->first(fn ($tx) => $tx['id'] === $occurrence['transaction_id'] && ! ($tx['deleted_at'] ?? null));
+            if (! $current || $current['type'] !== 'expense' || ($current['informational'] ?? false)) {
+                continue;
+            }
+            $baseline = (int) $occurrence['payload']['amount'];
+            $kind = 'plan';
+            $referenceDate = $occurrence['due_date'];
+            if ((int) $current['amount'] === $baseline) {
+                $previous = array_values(array_filter($transactions, fn ($tx) => ($tx['template_id'] ?? null) == $occurrence['template_id'] && ($tx['occurrence_date'] ?? '') < $occurrence['due_date'] && $tx['date'] <= $current['date'] && $tx['type'] === 'expense' && ! ($tx['informational'] ?? false) && ! ($tx['deleted_at'] ?? null)));
+                usort($previous, fn ($a, $b) => [$b['occurrence_date'], $b['id']] <=> [$a['occurrence_date'], $a['id']]);
+                if (! $previous) {
+                    continue;
+                }
+                $baseline = (int) $previous[0]['amount'];
+                $referenceDate = $previous[0]['occurrence_date'];
+                $kind = 'previous';
+            }
+            if ((int) $current['amount'] !== $baseline) {
+                $changes[] = ['transaction_id' => $current['id'], 'template_id' => $occurrence['template_id'], 'name' => $occurrence['name'], 'due_date' => $occurrence['due_date'], 'record_date' => $current['date'], 'actual' => (int) $current['amount'], 'reference' => $baseline, 'reference_kind' => $kind, 'reference_date' => $referenceDate, 'difference' => (int) $current['amount'] - $baseline];
+            }
+        }
+
+        return $changes;
+    }
+
     public function month(array $templates, array $versions, array $transactions, array $loans, array $loanVersions, int $year, int $month): array
     {
         $first = new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));

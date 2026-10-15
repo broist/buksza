@@ -59,9 +59,15 @@ try {
     assert.equal(exported.status(),200);assert.equal((await exported.body()).subarray(0,2).toString(),'PK');
     const backup=await context.request.get('https://localhost:18443/mentes');
     assert.equal(backup.status(),200);assert(!((await backup.text()).includes('installer-qa@example.test')));
+    await page.goto('https://localhost:18443/uzleti-riport');
+    await page.getByRole('heading',{name:'Üzleti / magán riport',exact:true}).waitFor();
+    assert.match(await page.getByRole('region',{name:'Magán időszaki összesítő'}).innerText(),/1 234/);
+    const businessExport=await context.request.get('https://localhost:18443/uzleti-riport/export?format=xlsx');
+    assert.equal(businessExport.status(),200);assert.equal((await businessExport.body()).subarray(0,2).toString(),'PK');
     const webauthn=await context.newCDPSession(page);await webauthn.send('WebAuthn.enable');
     await webauthn.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
     await page.goto('https://localhost:18443/beallitasok');
+    assert.equal(await page.getByLabel('Keretek és összegváltozások összefoglalója az esti jelzésben').isChecked(),true);
     const operations=page.getByRole('region',{name:'Működési állapot és mentések'});
     await operations.getByText('A legutóbbi mentés rendben',{exact:true}).waitFor();
     assert.match(await operations.innerText(),/Napi automatikus futás:\s*Még nincs adat/);

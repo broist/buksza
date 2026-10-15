@@ -7,6 +7,19 @@ use PHPUnit\Framework\TestCase;
 
 class ReminderPlannerTest extends TestCase
 {
+    public function test_optional_summary_only_changes_the_daily_body_and_stays_within_the_phone_limit(): void
+    {
+        $planner = new ReminderPlanner;
+        $summary = ['budgets' => array_fill(0, 23, []), 'changes' => array_fill(0, 12, [])];
+        $payload = $planner->payload('2026-10-31', ['daily', 'anna'], $summary);
+        self::assertStringContainsString('Anna', $payload['body']);
+        self::assertStringContainsString('23 kategóriakeret, 12 rendszeres összegváltozás', $payload['body']);
+        self::assertLessThanOrEqual(200, mb_strlen($payload['body']));
+        self::assertSame('/esti-rogzites?date=2026-10-31&anna=1', $payload['url']);
+        self::assertStringNotContainsString('Figyelmeztetések:', $planner->payload('2026-10-31', ['anna'], $summary)['body']);
+        self::assertStringNotContainsString('Figyelmeztetések:', $planner->payload('2026-10-31', ['daily'], ['budgets' => [], 'changes' => []])['body']);
+    }
+
     public function test_titles_describe_the_reminder_and_keep_the_matching_destination(): void
     {
         $planner = new ReminderPlanner;

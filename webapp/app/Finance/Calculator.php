@@ -6,6 +6,63 @@ use DateTimeImmutable;
 
 final class Calculator
 {
+    public function budgetState(int $available, int $spent): string
+    {
+        if ($available <= 0) {
+            return $spent > 0 ? 'unplanned' : ($available < 0 ? 'over' : 'none');
+        }
+        if ($spent > $available) {
+            return 'over';
+        }
+        if ($spent === $available) {
+            return 'reached';
+        }
+
+        return (new Exact($spent))->times(5)->number->compareTo((new Exact($available))->times(4)->number) >= 0 ? 'near' : 'none';
+    }
+
+    /** A reporting split of real family income/expense, not a new CF or personal budget. */
+    public function businessReport(array $transactions, string $from, string $to): array
+    {
+        $empty = fn () => ['income' => 0, 'expense' => 0, 'difference' => 0];
+        $totals = ['all' => $empty(), 'business' => $empty(), 'personal' => $empty()];
+        $categories = $months = $rows = [];
+        foreach ($this->familyTransactions($transactions) as $row) {
+            if ($row['date'] < $from || $row['date'] > $to || ($row['informational'] ?? false) || ! in_array($row['type'], ['income', 'expense'], true)) {
+                continue;
+            }
+            $group = ! empty($row['business']) ? 'business' : 'personal';
+            $month = substr($row['date'], 0, 7);
+            $months[$month] ??= ['all' => $empty(), 'business' => $empty(), 'personal' => $empty()];
+            foreach (['all', $group] as $key) {
+                $totals[$key][$row['type']] += (int) $row['amount'];
+                $months[$month][$key][$row['type']] += (int) $row['amount'];
+            }
+            if ($row['type'] === 'expense') {
+                $id = $row['category_id'];
+                $categories[$id] ??= ['id' => $id, 'all' => 0, 'business' => 0, 'personal' => 0];
+                $categories[$id]['all'] += (int) $row['amount'];
+                $categories[$id][$group] += (int) $row['amount'];
+            }
+            $rows[] = [...$row, 'business' => $group === 'business', 'is_fee' => (bool) ($row['is_fee'] ?? false)];
+        }
+        foreach ($totals as &$total) {
+            $total['difference'] = $total['income'] - $total['expense'];
+        }
+        unset($total);
+        foreach ($months as &$groups) {
+            foreach ($groups as &$total) {
+                $total['difference'] = $total['income'] - $total['expense'];
+            }
+            unset($total);
+        }
+        unset($groups);
+        ksort($months);
+        usort($rows, fn ($a, $b) => [$b['date'], $b['id'], $b['is_fee']] <=> [$a['date'], $a['id'], $a['is_fee']]);
+
+        return ['totals' => $totals, 'months' => $months, 'categories' => array_values($categories), 'rows' => $rows];
+    }
+
     public function balanceGroups(array $accounts): array
     {
         $groups = [
@@ -144,9 +201,10 @@ final class Calculator
                 $spent = $byCategory[$id] ?? 0;
                 $previous = $category['carryover'] ? ($carry[$id] ?? 0) : 0;
                 $remaining = $previous + $budget - $spent;
+                $available = $previous + $budget;
                 $carry[$id] = $remaining;
                 $totalPlan += $budget;
-                $categoryRows[] = [...$category, 'plan' => $budget, 'spent' => $spent, 'previous' => $previous, 'remaining' => $remaining, 'difference' => $spent - $budget, 'differencePercent' => $budget === 0 ? null : (new Exact($spent - $budget))->divide($budget)->times(100)];
+                $categoryRows[] = [...$category, 'plan' => $budget, 'spent' => $spent, 'previous' => $previous, 'remaining' => $remaining, 'available' => $available, 'budgetState' => $this->budgetState($available, $spent), 'utilization' => $available > 0 ? (new Exact($spent))->divide($available)->times(100) : null, 'difference' => $spent - $budget, 'differencePercent' => $budget === 0 ? null : (new Exact($spent - $budget))->divide($budget)->times(100)];
                 $annualCategories[$id]['spent'] = ($annualCategories[$id]['spent'] ?? 0) + $spent;
                 $annualCategories[$id]['plan'] = ($annualCategories[$id]['plan'] ?? 0) + $budget;
             }

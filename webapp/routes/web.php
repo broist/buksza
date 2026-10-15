@@ -23,11 +23,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/passkey/register', [PasskeyController::class, 'register'])->middleware('throttle:5,1');
     Route::delete('/passkey/{id}', [PasskeyController::class, 'delete'])->middleware('throttle:5,1');
     Route::post('/kilepes', [AuthController::class, 'logout']);
-    foreach (['/', '/honap', '/tervezes', '/beallitasok', '/eves', '/szamlak', '/hitelek', '/rendszeres', '/esti-rogzites', '/zsebpenzek', '/befektetesek'] as $path) {
+    foreach (['/', '/honap', '/tervezes', '/beallitasok', '/eves', '/szamlak', '/hitelek', '/rendszeres', '/esti-rogzites', '/zsebpenzek', '/befektetesek', '/uzleti-riport'] as $path) {
         Route::get($path, [FinanceController::class, 'show']);
     }
     Route::post('/tetelek', [FinanceController::class, 'create']);
     Route::get('/export', [ExportController::class, 'download'])->middleware('throttle:20,1');
+    Route::get('/uzleti-riport/export', [ExportController::class, 'business'])->middleware('throttle:20,1');
     Route::get('/mentes', [BackupController::class, 'download'])->middleware('throttle:10,1');
     Route::get('/mentes/elozo', [BackupController::class, 'previous']);
     Route::post('/visszaallitas', [BackupController::class, 'restore'])->middleware('throttle:3,1');

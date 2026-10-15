@@ -7,7 +7,7 @@ export type OperationsStatus = {
     checked_at:string;
     scheduler:{state:'unknown'|'healthy'|'stale';last_seen_at:string|null};
     backup:{state:'unknown'|'healthy'|'stale'|'failed'|'running'|'stalled';scheduled_state:'unknown'|'healthy'|'stale';attempt:BackupRun|null;last_success:BackupRun|null;last_scheduled_success:BackupRun|null};
-    deliveries:{id:number;device_name:string;kind:string;status:string;attempted_at:string|null;sent_at:string|null}[];
+    deliveries:{id:number;device_name:string;kind:string;category_name:string|null;status:string;attempted_at:string|null;sent_at:string|null}[];
 };
 
 const date = (value:string|null|undefined) => value ? new Intl.DateTimeFormat('hu-HU',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(value)) : 'Még nincs adat';
@@ -38,10 +38,10 @@ export default function SystemStatus({status}:{status:OperationsStatus}) {
                 {(status.backup.state==='failed'||status.backup.state==='stalled'||status.backup.state==='stale')&&<p className="notice">A szerver mentési szolgáltatását ellenőrizni kell. Az alábbi pénzügyi mentést most is letöltheted saját eszközödre.</p>}
             </div>
         </div>
-        <h3>Ütemezett értesítések · az utolsó 20 küldés</h3>
+        <h3>Értesítések · az utolsó 20 küldés</h3>
         <p className="muted">A „szolgáltató átvette” a küldés eredménye. A telefonon történő megjelenést külön ellenőrizd. A próbaértesítés eredménye feljebb, az eszköznél látható.</p>
-        {status.deliveries.length===0?<p>Még nincs ütemezett értesítésküldés rögzítve.</p>:<ul className="system-deliveries">{status.deliveries.map(delivery=><li key={delivery.id}>
-            <strong>{delivery.kind==='anna'?'Anna hónap végi jelzése':'Napi költésrögzítési jelzés'}</strong>
+        {status.deliveries.length===0?<p>Még nincs értesítésküldés rögzítve.</p>:<ul className="system-deliveries">{status.deliveries.map(delivery=><li key={delivery.id}>
+            <strong>{delivery.kind.startsWith('budget:')?`Kategóriakeret elérése · ${delivery.category_name??'Kategória'}`:delivery.kind==='anna'?'Anna hónap végi jelzése':'Napi költésrögzítési jelzés'}</strong>
             <span>{delivery.device_name}</span>
             <span>{delivery.status==='sent'?'A szolgáltató átvette':delivery.status==='failed'?'Sikertelen küldés':'A küldés eredménye még nem ismert'}</span>
             <time>{date(delivery.attempted_at)}</time>

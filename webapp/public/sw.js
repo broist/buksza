@@ -5,7 +5,7 @@ self.addEventListener('activate', event => event.waitUntil(self.clients.claim())
 self.addEventListener('push', event => {
     let payload = {};
     try { payload = event.data?.json() || {}; } catch {}
-    const url = typeof payload.url === 'string' && /^\/(esti-rogzites|szamlak)(\?|$)/.test(payload.url) ? payload.url : '/';
+    const url = typeof payload.url === 'string' && /^\/(esti-rogzites|szamlak|honap)(\?|$)/.test(payload.url) ? payload.url : '/';
     const title = typeof payload.title === 'string' && payload.title.trim() ? payload.title.trim().slice(0, 100) : 'Pénzügyi emlékeztető';
     event.waitUntil(self.registration.showNotification(title, {
         body: typeof payload.body === 'string' ? payload.body.slice(0, 200) : 'Nyisd meg a Bukszát a napi rögzítéshez.',

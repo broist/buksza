@@ -35,16 +35,25 @@ final class ReminderPlanner
         return $events;
     }
 
-    public function payload(string $date, array $kinds): array
+    public function payload(string $date, array $kinds, ?array $insights = null): array
     {
         $anna = in_array('anna', $kinds);
         $daily = in_array('daily', $kinds);
 
-        return [
+        $payload = [
             'title' => $daily && $anna ? 'Esti és hónap végi emlékeztető' : ($anna ? 'Anna hónap végi egyenlege' : 'Esti pénzügyi emlékeztető'),
             'body' => $daily && $anna ? 'Írd be a mai költéseket és Anna hónap végi egyenlegét.' : ($anna ? 'Add meg Anna hónap végi számlaegyenlegét.' : 'Szánj egy percet a mai költések rögzítésére.'),
             'tag' => 'buksza-'.$date.'-'.implode('-', $kinds),
             'url' => $anna && ! $daily ? '/szamlak?year='.substr($date, 0, 4).'&month='.(int) substr($date, 5, 2).'&anna=1' : '/esti-rogzites?date='.$date.($anna ? '&anna=1' : ''),
         ];
+        if ($daily && $insights) {
+            $budgets = count($insights['budgets']);
+            $changes = count($insights['changes']);
+            if ($budgets || $changes) {
+                $payload['body'] .= ' Figyelmeztetések: '.$budgets.' kategóriakeret, '.$changes.' rendszeres összegváltozás. Részletek az appban.';
+            }
+        }
+
+        return $payload;
     }
 }

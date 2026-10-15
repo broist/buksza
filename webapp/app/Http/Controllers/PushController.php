@@ -12,7 +12,7 @@ class PushController extends Controller
 {
     public function settings(Request $request)
     {
-        $data = $request->validate(['daily_enabled' => 'required|boolean', 'anna_enabled' => 'required|boolean', 'daily_time' => 'required|date_format:H:i', 'anna_time' => 'required|date_format:H:i']);
+        $data = $request->validate(['daily_enabled' => 'required|boolean', 'anna_enabled' => 'required|boolean', 'daily_time' => 'required|date_format:H:i', 'anna_time' => 'required|date_format:H:i', 'insights_enabled' => 'sometimes|boolean', 'instant_budget_enabled' => 'sometimes|boolean']);
         DB::table('reminder_settings')->updateOrInsert(['user_id' => $request->user()->id], [...$data, 'created_at' => now(), 'updated_at' => now()]);
 
         return back()->with('message', 'Emlékeztetők elmentve. Az időpontok Budapest szerint értendők.');

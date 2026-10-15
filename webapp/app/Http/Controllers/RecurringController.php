@@ -6,6 +6,7 @@ use App\Finance\RecurringStore;
 use App\Finance\TransactionInput;
 use App\Models\RecurringTemplate;
 use App\Models\Transaction;
+use App\Notifications\BudgetNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -61,6 +62,8 @@ class RecurringController extends Controller
         if (! $occurrence) {
             throw ValidationException::withMessages(['due_date' => 'Ehhez a dátumhoz nincs esedékes sablon.']);
         }
+        $notifier = app(BudgetNotifier::class);
+        $before = $notifier->before($data['date']);
         $tx = DB::transaction(function () use ($data, $template, $occurrence) {
             $paid = Transaction::withTrashed()->where('template_id', $template->id)->where('occurrence_date', $data['due_date'])->first();
             if ($paid && ! $paid->trashed()) {
@@ -94,6 +97,7 @@ class RecurringController extends Controller
 
             return Transaction::firstOrCreate(['template_id' => $template->id, 'occurrence_date' => $data['due_date']], $payload);
         });
+        $notifier->after($before);
         $response = back()->with('message', empty($data['existing_id']) ? 'A tényleges fizetés rögzítve.' : 'A korábbi tétel a sablonhoz kapcsolva. Nem számoltuk újra.');
 
         return empty($data['existing_id']) ? $response->with('undoId', $tx->id) : $response;

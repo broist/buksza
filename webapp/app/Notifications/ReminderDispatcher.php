@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Finance\Insights;
 use App\Models\PushDevice;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ final class ReminderDispatcher
         DB::table('scheduler_heartbeats')->updateOrInsert(['name' => 'reminders'], ['last_seen_at' => $now->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')]);
         $sent = 0;
         $planner = new ReminderPlanner;
+        $insights = null;
         foreach (DB::table('reminder_settings')->get() as $settings) {
             $date = $now->setTimezone(new \DateTimeZone('Europe/Budapest'))->format('Y-m-d');
             $reported = DB::table('account_snapshots')->join('accounts', 'accounts.id', '=', 'account_snapshots.account_id')->where('accounts.kind', 'snapshot')->where('accounts.owner', 'Anna')->where('account_snapshots.date', $date)->exists();
@@ -35,7 +37,15 @@ final class ReminderDispatcher
                         continue;
                     }
                     try {
-                        $result = $this->transport->send($device, $planner->payload($event['date'], $kinds));
+                        $summary = null;
+                        if (($settings->insights_enabled ?? false) && in_array('daily', $kinds, true)) {
+                            try {
+                                $summary = $insights ??= app(Insights::class)->onDate($event['date']);
+                            } catch (\Throwable) {
+                                // Optional summaries must not prevent the daily reminder itself.
+                            }
+                        }
+                        $result = $this->transport->send($device, $planner->payload($event['date'], $kinds, $summary));
                     } catch (\Throwable) {
                         // Never log subscription tokens or private signing material.
                         $result = ['success' => false, 'expired' => false];

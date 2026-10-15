@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Finance\BusinessReportStore;
 use App\Finance\Calculator;
+use App\Finance\Insights;
 use App\Finance\PhaseFourReports;
 use App\Finance\PlanStore;
 use App\Finance\PlanSuggestions;
@@ -12,6 +14,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Loan;
 use App\Models\Transaction;
+use App\Notifications\BudgetNotifier;
 use App\Notifications\PushSettings;
 use App\Operations\SystemStatus;
 use Carbon\CarbonImmutable;
@@ -83,11 +86,12 @@ class FinanceController extends Controller
         $versions = DB::table('loan_versions')->orderBy('id')->get()->map(fn ($v) => [...(array) $v, 'data' => json_decode($v->data, true)])->all();
         $loans = $calculator->loans(Loan::all()->toArray(), $versions, $transactions, $year, $month);
         $unassigned = array_sum(array_column(array_filter($transactions, fn ($tx) => $tx['type'] === 'expense' && $tx['category_id'] == 13 && ! $tx['loan_id'] && ! $tx['informational'] && str_starts_with($tx['date'], $prefix)), 'amount'));
+        $recurring = app(RecurringStore::class)->month($year, $month);
 
         return Inertia::render('Finance', [
             'year' => $year, 'month' => $month, 'today' => now()->toDateString(),
             'view' => match ($request->path()) {
-                'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', 'zsebpenzek' => 'pockets', 'befektetesek' => 'investments', default => 'overview'
+                'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', 'zsebpenzek' => 'pockets', 'befektetesek' => 'investments', 'uzleti-riport' => 'business', default => 'overview'
             },
             'categories' => $categories, 'settings' => $settings, 'report' => $report['months'][$month], 'annual' => $report['annual'],
             'scopedReport' => $scoped['months'][$month], 'filters' => ['account_id' => $scopeAccount, 'person' => $scopePerson],
@@ -99,7 +103,9 @@ class FinanceController extends Controller
             'balanceGroups' => $calculator->balanceGroups(array_values(array_filter($accounts, fn ($a) => (! $scopeAccount || $a['id'] == $scopeAccount) && (! $scopePerson || $a['owner'] === $scopePerson)))),
             'loans' => $loans, 'loanTotals' => ['expected' => array_sum(array_column($loans, 'expected')), 'paid' => array_sum(array_column($loans, 'paid')), 'remaining' => array_sum(array_column($loans, 'remaining')), 'unassigned' => $unassigned],
             'eveningDate' => $eveningDate,
-            'recurring' => app(RecurringStore::class)->month($year, $month),
+            'recurring' => $recurring,
+            'insights' => app(Insights::class)->forReport($report['months'][$month], $recurring),
+            'businessReport' => $request->path() === 'uzleti-riport' ? app(BusinessReportStore::class)->forRequest($request) : null,
             'monthComplete' => (bool) DB::table('month_observations')->where('year', $year)->where('month', $month)->value('complete'),
             'suggestions' => app(PlanSuggestions::class)->calculate($year, $month, $categories, $allTransactions, DB::table('month_observations')->get()->map(fn ($r) => (array) $r)->all()),
             'push' => app(PushSettings::class)->forUser($request->user()->id),
@@ -120,7 +126,10 @@ class FinanceController extends Controller
     public function create(Request $request)
     {
         $data = $this->transactionData($request);
+        $notifier = app(BudgetNotifier::class);
+        $before = $notifier->before($data['date']);
         $tx = Transaction::withTrashed()->firstOrCreate(['client_id' => $data['client_id']], $data);
+        $notifier->after($before);
 
         return back()->with('message', 'Tétel elmentve.')->with('undoId', $tx->id);
     }
@@ -129,7 +138,10 @@ class FinanceController extends Controller
     {
         $data = $this->transactionData($request, $transaction);
         abort_unless($data['client_id'] === $transaction->client_id, 422);
+        $notifier = app(BudgetNotifier::class);
+        $before = $notifier->before($data['date']);
         $transaction->update($data);
+        $notifier->after($before);
 
         return back()->with('message', 'Módosítás elmentve.');
     }
@@ -144,7 +156,10 @@ class FinanceController extends Controller
     public function undo(int $id)
     {
         $tx = Transaction::withTrashed()->findOrFail($id);
+        $notifier = app(BudgetNotifier::class);
+        $before = $tx->trashed() ? $notifier->before($tx->date) : null;
         $tx->trashed() ? $tx->restore() : $tx->delete();
+        $notifier->after($before);
 
         return back()->with('message', 'Visszavonva.');
     }

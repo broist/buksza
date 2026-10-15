@@ -48,6 +48,15 @@ test('missing or malformed push titles have a meaningful fallback', async () => 
     assert.equal(instance.notifications.at(-1).title, 'Pénzügyi emlékeztető');
 });
 
+test('instant budget notification preserves its local monthly destination', async () => {
+    const instance = worker();
+    await instance.dispatch('push', {json: () => ({title:'Kategóriakeret elérve',url:'/honap?year=2026&month=10'})});
+    assert.equal(instance.notifications.at(-1).title,'Kategóriakeret elérve');
+    assert.equal(instance.notifications.at(-1).data.url,'/honap?year=2026&month=10');
+    await instance.dispatch('push', {json: () => ({url:'//example.com/honap'})});
+    assert.equal(instance.notifications.at(-1).data.url,'/');
+});
+
 test('notification-only worker updates activate without reopening every app window', async () => {
     const instance = worker();
     await instance.dispatch('install');
