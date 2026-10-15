@@ -4,6 +4,8 @@
 
 A projekt és a csomagolt telepítő tárolója: [broist/buksza](https://github.com/broist/buksza).
 
+A szerveren az alkalmazás felhasználó által megadott helye **`/opt/buksza`**; a telepítő alapból ezt használja. Az aktív kiadás `/opt/buksza/current`, az adatbázis `/opt/buksza/data/database.sqlite`, a mentések `/opt/buksza/backups` alatt vannak. Az alábbi `~/buksza-forras` csak a Gitből letöltött forrás és telepítő helye; a futó alkalmazás a telepítés után `/opt/buksza` alatt működik.
+
 Első alkalommal az Ubuntu-szerveren, az `ubuntu` felhasználóval:
 
 ```bash
