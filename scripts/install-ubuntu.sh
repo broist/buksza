@@ -267,13 +267,14 @@ prepare_root() {
             if [[ -n "$existing_entry" ]]; then
                 fail 'A /opt/buksza nem üres, és nem ehhez a telepítőhöz tartozik. A tartalmát nem módosítottuk.'; return 1
             fi
-            install -d -m 0700 -o root -g root "$INSTALL_ROOT"
+            install -d -m 0755 -o root -g root "$INSTALL_ROOT"
             printf 'buksza-installer-v1\n' > "$INSTALL_ROOT/.buksza-install"
         fi
     else
-        install -d -m 0700 "$INSTALL_ROOT"
+        install -d -m 0755 "$INSTALL_ROOT"
         printf 'buksza-installer-v1\n' > "$INSTALL_ROOT/.buksza-install"
     fi
+    chmod 0755 "$INSTALL_ROOT"
     install -d -m 0700 "$INSTALL_ROOT/releases" "$INSTALL_ROOT/backups" "$INSTALL_ROOT/bin"
     if [[ ! -d "$INSTALL_ROOT/data" ]]; then install -d -m 0750 "$INSTALL_ROOT/data"; fi
     if [[ -L "$INSTALL_ROOT/current" ]]; then

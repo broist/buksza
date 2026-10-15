@@ -4,4 +4,5 @@
 - Follow `webapp/AGENTS.md` for application changes, phase scope, mobile-first work and isolated testing.
 - Regenerate the self-contained installer with `node scripts/package-installer.mjs` whenever packaged application or deployment source changes. Commit the generated `dist/buksza-telepito.sh`, `.sha256` and package file manifest together with their source.
 - Never publish local databases, environment secrets, private keys, runtime files or generated QA screenshots/reports. `.env.example` is a blank configuration template and may be committed.
+- The user requests mode `0755` (`drwxr-xr-x`) for `/opt/buksza` itself. Keep this nonrecursive: secret environment files remain `0600`, backup directories `0700`.
 - The user explicitly confirmed the server application location as `/opt/buksza`; preserve this installer root. Active release: `/opt/buksza/current`, database: `/opt/buksza/data/database.sqlite`, backups: `/opt/buksza/backups`. The server Git checkout is separate (`~/buksza-forras`). Updating Git does not deploy automatically: run the packaged installer with `--existing-nginx` after pulling. See `docs/TELEPITES-UBUNTU.md`.

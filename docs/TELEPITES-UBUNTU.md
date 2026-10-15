@@ -8,6 +8,8 @@ A szerveren az alkalmazás felhasználó által megadott helye **`/opt/buksza`**
 
 A `/opt/buksza` könyvtárat a telepítő létrehozza, illetve egy előre létrehozott, teljesen üres könyvtárat is használhat. Idegen tartalom esetén (rejtett fájlokkal együtt) megáll, és nem írja felül azt. A saját jelölőfájllal rendelkező korábbi telepítést frissíti.
 
+A felhasználó kérésére a `/opt/buksza` jogosultsága `755` (`drwxr-xr-x`). Ez kizárólag a főkönyvtárra vonatkozik; a titkos konfiguráció `600`, a mentési könyvtár `700` marad. Kézzel: `sudo chmod 755 /opt/buksza`, rekurzív kapcsoló nélkül.
+
 Első alkalommal az Ubuntu-szerveren, az `ubuntu` felhasználóval:
 
 ```bash

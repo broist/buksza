@@ -22,7 +22,8 @@ ln -s "$INSTALL_ROOT" "$TEST_ROOT/linked-root"
 if (INSTALL_ROOT="$TEST_ROOT/linked-root" prepare_root); then exit 1; fi
 prepare_root
 grep -Fxq buksza-installer-v1 "$INSTALL_ROOT/.buksza-install"
-[[ $(stat -c '%a' "$INSTALL_ROOT") == 700 ]]
+[[ $(stat -c '%a' "$INSTALL_ROOT") == 755 ]]
+[[ $(stat -c '%a' "$INSTALL_ROOT/backups") == 700 ]]
 [[ -d "$INSTALL_ROOT/releases" && -d "$INSTALL_ROOT/backups" && -d "$INSTALL_ROOT/data" ]]
 prepare_environment
 FIRST_HASH=$(sha256sum "$INSTALL_ROOT/app.env")
