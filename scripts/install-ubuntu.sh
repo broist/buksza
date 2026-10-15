@@ -276,6 +276,7 @@ prepare_root() {
     fi
     chmod 0755 "$INSTALL_ROOT"
     install -d -m 0700 "$INSTALL_ROOT/releases" "$INSTALL_ROOT/backups" "$INSTALL_ROOT/bin"
+    install -d -m 0755 -o root -g root "$INSTALL_ROOT/status"
     if [[ ! -d "$INSTALL_ROOT/data" ]]; then install -d -m 0750 "$INSTALL_ROOT/data"; fi
     if [[ -L "$INSTALL_ROOT/current" ]]; then
         OLD_PATH=$(readlink -f "$INSTALL_ROOT/current")
@@ -328,7 +329,7 @@ install_backup() {
 Description=Buksza SQLite es konfiguracio mentes
 [Service]
 Type=oneshot
-ExecStart=/opt/buksza/bin/backup.sh
+ExecStart=/opt/buksza/bin/backup.sh --scheduled
 UMask=0077
 SERVICE
     cat > /etc/systemd/system/buksza-backup.timer <<'TIMER'

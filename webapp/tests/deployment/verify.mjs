@@ -11,9 +11,11 @@ const password='QA-'+randomBytes(16).toString('hex');
 // Disposable localhost CA only; actual deployment requires a trusted public certificate.
 const browser=await chromium.launch({args:['--ignore-certificate-errors']});
 const errors=[];
+let diagnosticPage;
 try {
     const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800}});
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
+    diagnosticPage=page;
     await page.goto('https://localhost:18443/belepes');
     await page.getByText('Az első belépés létrehozásához',{exact:false}).waitFor();
     assert.equal(await page.locator('form').count(),0);
@@ -60,6 +62,10 @@ try {
     const webauthn=await context.newCDPSession(page);await webauthn.send('WebAuthn.enable');
     await webauthn.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
     await page.goto('https://localhost:18443/beallitasok');
+    const operations=page.getByRole('region',{name:'Működési állapot és mentések'});
+    await operations.getByText('A legutóbbi mentés rendben',{exact:true}).waitFor();
+    assert.match(await operations.innerText(),/Napi automatikus futás:\s*Még nincs adat/);
+    dc('exec','-T','app','php','-r','exit(is_writable("/run/buksza-status") ? 1 : 0);');
     await page.getByLabel('Passkey neve',{exact:true}).fill('Production QA passkey');
     await page.getByLabel('Jelenlegi jelszó a passkey kezeléséhez',{exact:true}).fill(password);
     await page.getByRole('button',{name:'Új passkey hozzáadása',exact:true}).click();
@@ -70,4 +76,10 @@ try {
     await page.getByRole('heading',{name:'Szia, Telepítő QA!'}).waitFor();
     await page.screenshot({path:resolve(root,'docs/screenshots/installer-qa-360.png'),fullPage:true});
     console.log('Production QA: HTTPS/FPM, protected setup, actual entry, restart persistence, push key, PWA, 360px, phase four pages, XLSX/encrypted backup and real passkey registration/login passed.');
+} catch(error) {
+    if(diagnosticPage) {
+        await diagnosticPage.screenshot({path:resolve(root,'docs/screenshots/installer-qa-failure.png'),fullPage:true}).catch(()=>{});
+        console.error('Production QA failure:',diagnosticPage.url(),errors);
+    }
+    throw error;
 } finally {await browser.close();}

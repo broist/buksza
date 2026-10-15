@@ -46,4 +46,23 @@ bash "$TEST_ROOT/backup.sh"
 BACKUP_DB=$(find "$INSTALL_ROOT/backups" -name database.sqlite -print -quit)
 [[ $(sqlite3 "$BACKUP_DB" 'SELECT amount FROM ledger;') == 1234 ]]
 cmp "$INSTALL_ROOT/app.env" "${BACKUP_DB%/*}/app.env"
+[[ $(stat -c '%a' "$INSTALL_ROOT/status") == 755 ]]
+[[ $(stat -c '%a' "$INSTALL_ROOT/status/backup.json") == 644 ]]
+[[ $(sqlite3 :memory: "SELECT json_extract(readfile('$INSTALL_ROOT/status/backup.json'), '$.status');") == succeeded ]]
+[[ ! -e "$INSTALL_ROOT/status/scheduled-success.json" ]]
+bash "$TEST_ROOT/backup.sh" --scheduled
+[[ $(sqlite3 :memory: "SELECT json_extract(readfile('$INSTALL_ROOT/status/scheduled-success.json'), '$.trigger');") == scheduled ]]
+LAST_SUCCESS=$(sha256sum "$INSTALL_ROOT/status/last-success.json")
+SCHEDULED_SUCCESS=$(sha256sum "$INSTALL_ROOT/status/scheduled-success.json")
+mv "$INSTALL_ROOT/app.env" "$INSTALL_ROOT/app.env.test-preserved"
+if bash "$TEST_ROOT/backup.sh"; then printf 'Missing config must fail the backup.\n' >&2; exit 1; fi
+mv "$INSTALL_ROOT/app.env.test-preserved" "$INSTALL_ROOT/app.env"
+[[ $(sqlite3 :memory: "SELECT json_extract(readfile('$INSTALL_ROOT/status/backup.json'), '$.status');") == failed ]]
+[[ "$LAST_SUCCESS" == "$(sha256sum "$INSTALL_ROOT/status/last-success.json")" ]]
+[[ "$SCHEDULED_SUCCESS" == "$(sha256sum "$INSTALL_ROOT/status/scheduled-success.json")" ]]
+STATUS_HASH=$(sha256sum "$INSTALL_ROOT/status/backup.json")
+flock /run/buksza-backup.lock bash "$TEST_ROOT/backup.sh"
+[[ "$STATUS_HASH" == "$(sha256sum "$INSTALL_ROOT/status/backup.json")" ]]
+if bash "$TEST_ROOT/backup.sh" --unexpected; then exit 1; fi
 printf '\nInstaller tests: domain/input validation, empty root adoption, nonempty/file/symlink refusal, config/key preservation, permissions and self-extraction passed.\n'
+printf 'Backup reporting: atomic metadata, manual/scheduled distinction, failure preservation and lock exclusion passed.\n'

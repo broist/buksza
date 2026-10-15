@@ -2,6 +2,7 @@
 
 - The user requested publishing this project and subsequent completed changes to `https://github.com/broist/buksza.git`. Commit and push completed, checked work to this remote; do not force-push. Report any authentication or push failure accurately.
 - Follow `webapp/AGENTS.md` for application changes, phase scope, mobile-first work and isolated testing.
+- On 2026-10-15 the user selected phase 5: operational status and backups. See `docs/PHASE-5.md`. Status files are root-written metadata under `/opt/buksza/status`, mounted read-only at `/run/buksza-status`; never mount the private backup directory or Docker socket into the app. Manual/deployment backup success must not be reported as a scheduled backup.
 - On 2026-10-15 the user confirmed successful AWS deployment and actual iPhone push receipt with a screenshot. Public `https://buksza.duktor.hu/up` and `/belepes` returned HTTP 200 with verified TLS. Scheduled daily/month-end delivery, production scheduler heartbeat and the first scheduled backup still need verification; do not report them as tested.
 - Regenerate the self-contained installer with `node scripts/package-installer.mjs` whenever packaged application or deployment source changes. Commit the generated `dist/buksza-telepito.sh`, `.sha256` and package file manifest together with their source.
 - Never publish local databases, environment secrets, private keys, runtime files or generated QA screenshots/reports. `.env.example` is a blank configuration template and may be committed.

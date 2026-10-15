@@ -19,3 +19,10 @@ else
     docker compose "${OPTIONS[@]}" logs --tail=30 caddy scheduler
 fi
 systemctl list-timers buksza-backup.timer --no-pager
+systemctl show buksza-backup.service --property=ActiveState,Result,ExecMainStatus,ExecMainExitTimestamp --no-pager
+for report in backup.json last-success.json scheduled-success.json; do
+    if [[ -f "$ROOT/status/$report" ]]; then
+        printf '\n[Buksza] %s\n' "$report"
+        cat -- "$ROOT/status/$report"
+    fi
+done

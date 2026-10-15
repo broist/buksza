@@ -10,6 +10,7 @@ services:
     volumes:
       - ${BUKSZA_HOME}/data:/data
       - app_storage:/app/storage
+      - ${BUKSZA_HOME}/status:/run/buksza-status:ro
     networks: [backend]
     restart: unless-stopped
     healthcheck:
@@ -24,6 +25,7 @@ services:
     volumes:
       - ${BUKSZA_HOME}/data:/data
       - app_storage:/app/storage
+      - ${BUKSZA_HOME}/status:/run/buksza-status:ro
     networks: [backend]
     depends_on: [app]
     restart: unless-stopped

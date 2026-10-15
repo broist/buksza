@@ -492,6 +492,8 @@ A fejlesztő (Codex) választhat másik stacket, de ez a javaslat:
 
 ## 10. Fejlesztési fázisok (jóváhagyott terv)
 
+Az első négy fázis után a felhasználó 2026.10.15-én külön jóváhagyta az **5. fázist: Működési állapot és mentések**. Beállításokban megjelenő ütemező-életjel, értesítési küldéselőzmény és szervermentési állapot; a kézi és napi automatikus mentés megkülönböztetésével, magyar időpontokkal és külön frissítéssel. Nincs új pénzügyi elszámolási szabály, import vagy kintlévőségi modul. Részletek: [PHASE-5.md](PHASE-5.md). A távoli szerver aktuális állapotát a frissítés utáni saját jelentések alapján kell ellenőrizni.
+
 A felhasználó jóváhagyta a fejlesztés indítását és folytatását. Az 1. fázis elkészült: [PHASE-1.md](PHASE-1.md). A 2. fázis is elkészült: [PHASE-2.md](PHASE-2.md). A 3. fázis folytatását is jóváhagyta a felhasználó: a helyi funkciók elkészültek, [PHASE-3.md](PHASE-3.md). A felhasználó 2026.10.15-én sikeres AWS-telepítést jelzett: Ubuntu, buksza.duktor.hu, /opt/buksza; HTTPS /up és /belepes ellenőrzés: 200. A felhasználó képernyőképpel igazolta az iPhone-push megérkezését (2026.10.15.). Az ütemezett napi/hónap végi fogadás, az éles ütemező életjele és az első ütemezett mentés még ellenőrizendő. A felhasználó 2026.10.15-én jóváhagyta a 4. fázist; funkciói elkészültek: [PHASE-4.md](PHASE-4.md). A 4. fázis végén bemutató és megállás következik; új funkció külön jóváhagyással indul.
 
 Minden képernyő először **360 px széles telefonra** készül, és az ellenőrzött mobilnézet után bővül asztalira. Minden fázis végén bemutató és az ellenőrzések eredményének ismertetése következik, majd megállás; a következő fázis a felhasználó jóváhagyásával indul. A specifikáció bővítése önmagában nem engedély a kódolás megkezdésére.

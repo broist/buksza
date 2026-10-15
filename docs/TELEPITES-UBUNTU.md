@@ -94,6 +94,8 @@ Az új csomagolt telepítő ugyanazzal a paranccsal futtatható. Építés közb
 sudo bash /opt/buksza/current/scripts/server-status.sh
 ```
 
+A **Beállítások → Működési állapot és mentések** kártyán az ütemező életjele, az ütemezett értesítések utolsó 20 küldése, az utolsó mentési kísérlet és sikeres/napi automatikus mentés külön ellenőrizhető. Az állapotfrissítés nem indít szerverparancsot vagy mentést. A telepítő saját, csak olvasható állapotkötetet ad a konténerekhez; a titkos mentési könyvtár továbbra sem érhető el belőlük. Részletek és az 5. fázis tesztjei: [PHASE-5.md](PHASE-5.md).
+
 Kézi mentés:
 
 ```bash

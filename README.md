@@ -4,6 +4,8 @@ Magyar, mobilra tervezett, egyfelhasználós családi pénzügyi webapp. Laravel
 
 ## Indítás Windows alatt
 
+**5. fázis – Működési állapot és mentések:** Beállítások → ütemező-életjel, utolsó 20 ütemezett értesítésküldés, szervermentési kísérlet és utolsó sikeres/napi automatikus mentés. Állapotfrissítés az el nem mentett űrlapok megőrzésével. A szerverfrissítéshez ismét futtatni kell a telepítőt. Részletek: [PHASE-5.md](docs/PHASE-5.md).
+
 **Ubuntu/AWS, buksza.duktor.hu:** a forrás és az egyfájlos telepítő a [broist/buksza](https://github.com/broist/buksza) tárolóban található. Klónozás után a `dist` könyvtárból `sudo bash buksza-telepito.sh --existing-nginx`; a későbbi frissítés `git pull --ff-only`, majd ugyanennek a telepítőnek az újrafuttatása. Részletes lépések és feltételek: [TELEPITES-UBUNTU.md](docs/TELEPITES-UBUNTU.md). A csomagolt forrásból Dockerben épít, saját Nginx-beállítást, HTTPS-t és ütemezőt készít, saját indítólinket és napi mentést ad. Az AWS-telepítés és az iPhone-os értesítés fogadása sikeres.
 
 Futó Docker Desktop és Node.js 24 szükséges. A projekt gyökerében:

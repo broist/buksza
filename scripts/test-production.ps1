@@ -5,6 +5,13 @@ try {
     $taskState = Join-Path $taskRoot ('test-results/production-' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path (Join-Path $taskState 'data') -Force | Out-Null
     New-Item -ItemType File -Path (Join-Path $taskState 'data/qa.sqlite') | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $taskState 'status') | Out-Null
+    # Synthetic operational reports belong only to this disposable QA project.
+    $taskTimestamp = [DateTime]::UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    $taskReport = @{version=1;status='succeeded';trigger='manual';started_at=$taskTimestamp;finished_at=$taskTimestamp;bytes=4096} | ConvertTo-Json -Compress
+    foreach ($taskReportName in @('backup.json','last-success.json')) {
+        [IO.File]::WriteAllText((Join-Path $taskState "status/$taskReportName"), $taskReport, [Text.UTF8Encoding]::new($false))
+    }
     $taskKey = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
     $taskEnvironment = @"
 APP_NAME=Buksza

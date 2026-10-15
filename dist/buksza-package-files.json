@@ -1,5 +1,5 @@
 {
-  "payloadSha256": "885526e89546413dc49f21d2ba464b1c4d438d6b984c6d5357e9960faa54cf87",
+  "payloadSha256": "d14f96767133836bb80621e41f390a17661f882946d7f8e25ba483926cd8a3bc",
   "files": [
     ".dockerignore",
     "docker/production/Caddyfile",
@@ -49,6 +49,7 @@
     "webapp/app/Notifications/ReminderDispatcher.php",
     "webapp/app/Notifications/ReminderPlanner.php",
     "webapp/app/Notifications/WebPushTransport.php",
+    "webapp/app/Operations/SystemStatus.php",
     "webapp/app/Providers/AppServiceProvider.php",
     "webapp/artisan",
     "webapp/bootstrap/app.php",
@@ -62,6 +63,7 @@
     "webapp/config/filesystems.php",
     "webapp/config/logging.php",
     "webapp/config/mail.php",
+    "webapp/config/operations.php",
     "webapp/config/queue.php",
     "webapp/config/services.php",
     "webapp/config/session.php",
@@ -88,6 +90,7 @@
     "webapp/resources/js/DataTools.tsx",
     "webapp/resources/js/ReminderSettings.tsx",
     "webapp/resources/js/ScopeControls.tsx",
+    "webapp/resources/js/SystemStatus.tsx",
     "webapp/resources/js/app.tsx",
     "webapp/resources/js/components.tsx",
     "webapp/resources/js/pages/Accounts.tsx",

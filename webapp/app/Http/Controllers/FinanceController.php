@@ -13,6 +13,7 @@ use App\Models\Category;
 use App\Models\Loan;
 use App\Models\Transaction;
 use App\Notifications\PushSettings;
+use App\Operations\SystemStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +108,7 @@ class FinanceController extends Controller
             'investments' => app(PhaseFourReports::class)->investments($year, $month, $allTransactions),
             'passkeys' => DB::table('passkeys')->where('user_id', $request->user()->id)->get(['id', 'name', 'created_at', 'last_used_at']),
             'hasRestoreBackup' => count(Storage::disk('local')->files('finance-backups')) > 0,
+            'systemStatus' => $request->path() === 'beallitasok' ? app(SystemStatus::class)->forUser($request->user()->id) : null,
         ]);
     }
 
