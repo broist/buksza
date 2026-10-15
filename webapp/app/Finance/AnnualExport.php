@@ -29,18 +29,24 @@ final class AnnualExport
         $a = $report['annual'];
         $exact = fn ($value) => $value instanceof Exact ? (string) $value->number : $value;
         $summary = [['Év', $year], ['Mértékegység', 'Ft; a törtek pontos értékek, kerekítés nélkül'], ['Éves bevétel', $a['income']], ['Éves kiadás', $a['expense']], ['Éves CF', $exact($a['cf'])], ['Havi CF-átlag', $exact($a['monthlyCf'])], ['Napi CF-átlag', $exact($a['dailyCf'])], ['Családi megtakarítási cél', $exact($a['savingsTarget'])], ['Tényleges családi félretétel', $a['actualSavings']], ['Örs külön befizetése', $a['childSavings']], ['Év végi terv szerinti maradék', $exact($a['closing'])]];
-        $monthly = [['Hónap', 'Bevétel', 'Kiadás', 'Havi terv', 'Családi megtakarítási cél', 'Tényleges félretétel', 'Örs befizetése', 'CF', 'Terv szerinti maradék']];
+        foreach ($a['loanFlows'] as $type => $value) {
+            $summary[] = [match ($type) {
+                'loan_given' => 'Éves kölcsönadás (− CF)', 'loan_given_return' => 'Éves visszakapott tőke (+ CF)', 'loan_received' => 'Éves felvett kölcsön (+ CF)', default => 'Éves személyes törlesztés (− CF)'
+            }, $value];
+        }
+        $monthly = [['Hónap', 'Bevétel', 'Kiadás', 'Havi terv', 'Családi megtakarítási cél', 'Tényleges félretétel', 'Örs befizetése', 'CF', 'Terv szerinti maradék', 'Adott kölcsön (− CF)', 'Visszakapott tőke (+ CF)', 'Kapott kölcsön (+ CF)', 'Személyes törlesztés (− CF)']];
         foreach ($report['months'] as $m) {
-            $monthly[] = [sprintf('%04d-%02d', $year, $m['month']), $m['income'], $m['expense'], $m['plan'], $exact($m['savingsTarget']), $m['actualSavings'], $m['childSavings'], $exact($m['cf']), $exact($m['closing'])];
+            $monthly[] = [sprintf('%04d-%02d', $year, $m['month']), $m['income'], $m['expense'], $m['plan'], $exact($m['savingsTarget']), $m['actualSavings'], $m['childSavings'], $exact($m['cf']), $exact($m['closing']), ...array_values($m['loanFlows'])];
         }
         $categoryRows = [['Kategória', 'Éves terv', 'Éves tény', 'Tény mínusz terv', 'Havi átlag', 'Napi átlag']];
         foreach ($a['categories'] as $c) {
             $categoryRows[] = [$c['name'], $c['plan'], $c['spent'], $c['difference'], $exact($c['monthlyAverage']), $exact($c['dailyAverage'])];
         }
         $categoryNames = array_column($categories, 'name', 'id');
-        $ledger = [['Azonosító', 'Dátum', 'Típus', 'Forrásszámla', 'Célszámla', 'Személy', 'Kategória', 'Összeg', 'Banki díj', 'Családi elszámolás', 'Belső összegkövetés', 'Üzleti', 'Megjegyzés']];
+        $linkedNames = DB::table('position_transactions as l')->join('finance_positions as p', 'p.id', '=', 'l.position_id')->pluck('p.name', 'l.transaction_id');
+        $ledger = [['Azonosító', 'Dátum', 'Típus', 'Forrásszámla', 'Célszámla', 'Személy', 'Kategória', 'Összeg', 'Banki díj', 'Családi elszámolás', 'Belső összegkövetés', 'Üzleti', 'Megjegyzés', 'Kölcsön / cél neve']];
         foreach ($transactions as $tx) {
-            $ledger[] = [$tx['id'], $tx['date'], $tx['type'], $accounts[$tx['account_id']]->name, isset($accounts[$tx['target_account_id']]) ? $accounts[$tx['target_account_id']]->name : '', $tx['person'], $categoryNames[$tx['category_id']] ?? '', $tx['amount'], $tx['fee_amount'], $tx['family_type'], $tx['informational'] ? 'igen' : 'nem', $tx['business'] ? 'igen' : 'nem', $tx['note'] ?? ''];
+            $ledger[] = [$tx['id'], $tx['date'], $tx['type'], $accounts[$tx['account_id']]->name, isset($accounts[$tx['target_account_id']]) ? $accounts[$tx['target_account_id']]->name : '', $tx['person'], $categoryNames[$tx['category_id']] ?? '', $tx['amount'], $tx['fee_amount'], $tx['family_type'], $tx['informational'] ? 'igen' : 'nem', $tx['business'] ? 'igen' : 'nem', $tx['note'] ?? '', $linkedNames[$tx['id']] ?? ''];
         }
 
         $pockets = app(PhaseFourReports::class)->pockets($year, $transactions, $accounts->values()->toArray());
@@ -55,7 +61,20 @@ final class AnnualExport
             $investmentRows[] = [$item['name'], $item['series'] ?? '', $item['beneficiary'], $item['annualPlan'], $item['annualActual'], $item['contributed'] ?? 'Még nem indult', $item['latest']?->amount ?? 'Ismeretlen', $item['latest']?->date ?? ''];
         }
 
-        return ['Összegzés' => $summary, 'Hónapok' => $monthly, 'Kategóriák' => $categoryRows, 'Tételek' => $ledger, 'Zsebpénzek' => $pocketRows, 'Örs babakötvényei' => $investmentRows];
+        $positions = app(Positions::class)->report("$year-12-31");
+        $positionRows = [['Típus', 'Név / partner', 'Kezdőnap', 'Korábbi nyitóösszeg', 'Év végéig fennálló összeg', 'Teljes célösszeg', 'Havi jövedelemalap', 'Határidő', 'Megjegyzés']];
+        foreach ($positions['items'] as $p) {
+            $positionRows[] = [match ($p['kind']) {
+                'receivable' => 'Nekem tartoznak', 'payable' => 'Én tartozom', 'reserve' => 'Hathavi tartalék', default => 'Megtakarítási cél'
+            }, $p['name'], $p['start_date'], $p['opening_amount'], $p['balance'], $p['target'], $p['monthly_income'], $p['due_date'] ?? '', $p['note'] ?? ''];
+        }
+        $allocationRows = [['Dátum', 'Forráscél', 'Fogadó cél', 'Összeg', 'Megjegyzés']];
+        $names = array_column($positions['items'], 'name', 'id');
+        foreach (DB::table('goal_transfers')->where('date', '<=', "$year-12-31")->orderBy('date')->get() as $t) {
+            $allocationRows[] = [$t->date, $names[$t->from_id], $names[$t->to_id], (int) $t->amount, $t->note ?? ''];
+        }
+
+        return ['Összegzés' => $summary, 'Hónapok' => $monthly, 'Kategóriák' => $categoryRows, 'Tételek' => $ledger, 'Zsebpénzek' => $pocketRows, 'Örs babakötvényei' => $investmentRows, 'Nyilvántartások' => $positionRows, 'Célátcsoportosítások' => $allocationRows];
     }
 
     public function csv(array $rows): string

@@ -11,11 +11,13 @@ use Illuminate\Validation\ValidationException;
 
 final class FinanceBackup
 {
-    public const TABLES = ['categories', 'accounts', 'account_modes', 'account_snapshots', 'year_settings', 'monthly_plans', 'loans', 'loan_versions', 'recurring_templates', 'recurring_versions', 'transactions', 'daily_notes', 'month_observations', 'investments', 'investment_plans', 'investment_values'];
+    public const BASE_TABLES = ['categories', 'accounts', 'account_modes', 'account_snapshots', 'year_settings', 'monthly_plans', 'loans', 'loan_versions', 'recurring_templates', 'recurring_versions', 'transactions', 'daily_notes', 'month_observations', 'investments', 'investment_plans', 'investment_values'];
 
-    private function schema(): string
+    public const TABLES = [...self::BASE_TABLES, 'finance_positions', 'position_transactions', 'goal_transfers'];
+
+    private function schema(array $tables = self::TABLES): string
     {
-        return hash('sha256', json_encode(array_map(fn ($table) => Schema::getColumnListing($table), self::TABLES)));
+        return hash('sha256', json_encode(array_map(fn ($table) => Schema::getColumnListing($table), $tables)));
     }
 
     public function create(): string
@@ -30,10 +32,12 @@ final class FinanceBackup
         try {
             $json = gzdecode(Crypt::decryptString($contents), 20 * 1024 * 1024);
             $data = json_decode($json, true, 64, JSON_THROW_ON_ERROR);
-            if (($data['format'] ?? null) !== 'buksza-finance-1' || ($data['schema'] ?? null) !== $this->schema() || ! is_array($data['tables'] ?? null) || array_keys($data['tables']) !== self::TABLES) {
+            $provided = array_keys($data['tables'] ?? []);
+            $allowed = $provided === self::TABLES || $provided === self::BASE_TABLES;
+            if (! $allowed || ($data['format'] ?? null) !== 'buksza-finance-1' || ($data['schema'] ?? null) !== $this->schema($provided) || ! is_array($data['tables'] ?? null)) {
                 throw new \RuntimeException;
             }
-            foreach (self::TABLES as $table) {
+            foreach ($provided as $table) {
                 $columns = Schema::getColumnListing($table);
                 if (! is_array($data['tables'][$table]) || count($data['tables'][$table]) > 200000) {
                     throw new \RuntimeException;
@@ -48,6 +52,10 @@ final class FinanceBackup
                         }
                     }
                 }
+            }
+
+            foreach (self::TABLES as $table) {
+                $data['tables'][$table] ??= [];
             }
 
             return $data;

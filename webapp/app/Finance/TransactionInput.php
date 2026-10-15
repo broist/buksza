@@ -14,14 +14,14 @@ use Illuminate\Validation\ValidationException;
 
 final class TransactionInput
 {
-    public function validate(Request $request, ?Transaction $old = null): array
+    public function validate(Request $request, ?Transaction $old = null, ?array $position = null): array
     {
         $request->merge(['account_id' => $request->input('account_id', 1), 'fee_amount' => $request->input('fee_amount', 0)]);
         $data = $request->validate([
             'client_id' => 'required|uuid', 'date' => 'required|date_format:Y-m-d|after_or_equal:2000-01-01|before_or_equal:2100-12-31',
-            'type' => ['required', Rule::in(['expense', 'income', 'transfer', 'saving', 'saving_return', 'child_saving'])],
+            'type' => ['required', Rule::in(['expense', 'income', 'transfer', 'saving', 'saving_return', 'child_saving', ...Positions::LOAN_TYPES])],
             'amount' => 'required|integer|between:1,10000000000', 'account_id' => 'required|integer|exists:accounts,id',
-            'target_account_id' => 'nullable|integer|different:account_id|exists:accounts,id',
+            'target_account_id' => 'nullable|integer|exists:accounts,id',
             'category_id' => 'nullable|integer|exists:categories,id', 'subcategory' => 'nullable|string|max:150',
             'source' => ['nullable', 'required_if:type,income', Rule::in(['Munka', 'Egyéb'])],
             'note' => 'nullable|string|max:2000', 'business' => 'required|boolean',
@@ -31,6 +31,26 @@ final class TransactionInput
         $source = Account::findOrFail($data['account_id']);
         $target = Account::find($data['target_account_id'] ?? null);
         $type = $data['type'];
+        if ($old) {
+            $positionId = DB::table('position_transactions')->where('transaction_id', $old->id)->value('position_id');
+            $position = $positionId ? (array) DB::table('finance_positions')->find($positionId) : null;
+        }
+        if (in_array($type, Positions::LOAN_TYPES, true) && ! $position) {
+            $this->error('type', 'Személyes kölcsönt a Kintlévőségeim oldalon rögzíts.');
+        }
+        if ($position) {
+            if (! in_array($type, app(Positions::class)->types($position['kind']), true) || $data['date'] < $position['start_date']) {
+                $this->error('type', 'A mozgás a kapcsolódó kölcsönhöz vagy megtakarítási célhoz tartozik; típusa és dátuma ezt kövesse.');
+            }
+            if (! in_array($source->kind, ['bank', 'subaccount']) || ! empty($data['loan_id']) || ! empty($data['subcategory'])) {
+                $this->error('account_id', 'Ehhez saját bankszámlát vagy alszámlát válassz, bankhitel-kapcsolat nélkül.');
+            }
+            $data['category_id'] = null;
+            if (in_array($type, Positions::LOAN_TYPES, true)) {
+                $data['target_account_id'] = null;
+                $target = null;
+            }
+        }
         foreach ([$source, $target] as $account) {
             if (! $account) {
                 continue;
@@ -44,6 +64,13 @@ final class TransactionInput
         }
         $mode = fn (Account $a) => (array) (DB::table('account_modes')->where('account_id', $a->id)->where('effective_date', '<=', $data['date'])->orderByDesc('effective_date')->first() ?? $a->toArray());
         $sourceMode = $mode($source);
+        $inPlace = in_array($type, ['saving', 'saving_return'], true) && $source->id === $target?->id && ($position || ($old && in_array($old->type, ['saving', 'saving_return'], true) && $old->account_id === $old->target_account_id));
+        if ($source->id === $target?->id && ! $inPlace) {
+            $this->error('target_account_id', 'Különböző forrás- és célszámlát válassz. Azonos számlán csak célzsebhez lehet pénzt elkülöníteni.');
+        }
+        if ($position && $sourceMode['mode'] !== 'detailed') {
+            $this->error('account_id', 'Részletesen követett bankszámlát válassz.');
+        }
         $targetMode = $target ? $mode($target) : null;
         $sameRoute = $old && $old->type === $type && $old->account_id == $source->id && $old->target_account_id == $target?->id && $old->date === $data['date'];
         $informational = $type === 'expense' && $sourceMode['mode'] !== 'detailed';
@@ -63,7 +90,7 @@ final class TransactionInput
             }
             $data['category_id'] = null;
         } elseif (in_array($type, ['saving', 'saving_return'])) {
-            if ($target && $target->kind !== 'saving') {
+            if ($target && $target->kind !== 'saving' && ! $inPlace) {
                 $this->error('target_account_id', 'Családi megtakarítási számlát válassz, vagy külső félretételt.');
             }
             $data['category_id'] = null;

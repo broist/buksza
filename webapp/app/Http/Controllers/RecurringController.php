@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Finance\Positions;
 use App\Finance\RecurringStore;
 use App\Finance\TransactionInput;
 use App\Models\RecurringTemplate;
@@ -27,6 +28,7 @@ class RecurringController extends Controller
             'loan_terms' => 'required|boolean', 'payload' => 'required|array',
         ]);
         $effective = $data['effective_date'];
+        $data['end_date'] ??= null;
         unset($data['effective_date']);
         if ($template && $effective < now()->toDateString()) {
             throw ValidationException::withMessages(['effective_date' => 'A sablon új változata ma vagy később kezdődhet. A korábbi előzmények megmaradnak.']);
@@ -89,6 +91,7 @@ class RecurringController extends Controller
             }
             $payload = app(TransactionInput::class)->validate(Request::create('/', 'POST', [...$occurrence['payload'], 'client_id' => $paid?->client_id ?? (string) Str::uuid(), 'date' => $data['date'], 'amount' => $data['amount']]), $paid);
             if ($paid) {
+                app(Positions::class)->guard($paid, $payload);
                 $paid->fill($payload)->save();
                 $paid->restore();
 

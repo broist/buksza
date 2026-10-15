@@ -8,6 +8,7 @@ use App\Finance\Insights;
 use App\Finance\PhaseFourReports;
 use App\Finance\PlanStore;
 use App\Finance\PlanSuggestions;
+use App\Finance\Positions;
 use App\Finance\RecurringStore;
 use App\Finance\TransactionInput;
 use App\Models\Account;
@@ -47,7 +48,9 @@ class FinanceController extends Controller
             $plans[$row->month][$row->category_id] = $row->amount;
         }
         $allTransactions = Transaction::where('date', '<=', "$year-12-31")->orderByDesc('date')->orderByDesc('id')->get()->toArray();
+        $positionIds = DB::table('position_transactions')->pluck('position_id', 'transaction_id');
         foreach ($allTransactions as &$tx) {
+            $tx['position_id'] = $positionIds[$tx['id']] ?? null;
             $tx['person'] ??= $accountMap[$tx['account_id']]['owner'];
             $tx['fee_person'] = $accountMap[$tx['account_id']]['owner'];
         }
@@ -68,7 +71,10 @@ class FinanceController extends Controller
             $movements = array_filter($allTransactions, fn ($tx) => str_starts_with($tx['date'], $prefix));
             $a['inflow'] = $a['outflow'] = 0;
             foreach ($movements as $tx) {
-                $receives = in_array($tx['type'], ['income', 'saving_return', 'loan_repayment']);
+                if ($tx['account_id'] == ($tx['target_account_id'] ?? null) && in_array($tx['type'], ['saving', 'saving_return'], true)) {
+                    continue; // In-place goal allocation is not bank turnover.
+                }
+                $receives = in_array($tx['type'], ['income', 'saving_return', 'loan_repayment', 'loan_given_return', 'loan_received']);
                 if ($tx['account_id'] == $a['id']) {
                     $a[$receives ? 'inflow' : 'outflow'] += $tx['amount'];
                     $a['outflow'] += $tx['fee_amount'];
@@ -91,8 +97,9 @@ class FinanceController extends Controller
         return Inertia::render('Finance', [
             'year' => $year, 'month' => $month, 'today' => now()->toDateString(),
             'view' => match ($request->path()) {
-                'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', 'zsebpenzek' => 'pockets', 'befektetesek' => 'investments', 'uzleti-riport' => 'business', default => 'overview'
+                'kintlevosegeim' => 'claims', 'megtakaritasi-celok' => 'goals', 'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', 'zsebpenzek' => 'pockets', 'befektetesek' => 'investments', 'uzleti-riport' => 'business', default => 'overview'
             },
+            'positions' => app(Positions::class)->report($through),
             'categories' => $categories, 'settings' => $settings, 'report' => $report['months'][$month], 'annual' => $report['annual'],
             'scopedReport' => $scoped['months'][$month], 'filters' => ['account_id' => $scopeAccount, 'person' => $scopePerson],
             'transactions' => array_values(array_filter($transactions, fn ($tx) => str_starts_with($tx['date'], $prefix) && $visible($tx))),
@@ -140,7 +147,10 @@ class FinanceController extends Controller
         abort_unless($data['client_id'] === $transaction->client_id, 422);
         $notifier = app(BudgetNotifier::class);
         $before = $notifier->before($data['date']);
-        $transaction->update($data);
+        DB::transaction(function () use ($transaction, $data) {
+            app(Positions::class)->guard($transaction, $data);
+            $transaction->update($data);
+        });
         $notifier->after($before);
 
         return back()->with('message', 'Módosítás elmentve.');
@@ -148,7 +158,10 @@ class FinanceController extends Controller
 
     public function delete(Transaction $transaction)
     {
-        $transaction->delete();
+        DB::transaction(function () use ($transaction) {
+            app(Positions::class)->guard($transaction, null);
+            $transaction->delete();
+        });
 
         return back()->with('message', 'Tétel törölve.')->with('undoId', $transaction->id);
     }
@@ -158,7 +171,10 @@ class FinanceController extends Controller
         $tx = Transaction::withTrashed()->findOrFail($id);
         $notifier = app(BudgetNotifier::class);
         $before = $tx->trashed() ? $notifier->before($tx->date) : null;
-        $tx->trashed() ? $tx->restore() : $tx->delete();
+        DB::transaction(function () use ($tx) {
+            app(Positions::class)->guard($tx, $tx->trashed() ? $tx->toArray() : null);
+            $tx->trashed() ? $tx->restore() : $tx->delete();
+        });
         $notifier->after($before);
 
         return back()->with('message', 'Visszavonva.');

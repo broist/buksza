@@ -272,6 +272,10 @@ Két külön lista (telefonon külön füleken):
 
 ---
 
+### 3.10 Megtakarítási célzsebek (2026.10.15-i felhasználói pontosítás)
+
+A felhasználónak jelenleg nincs általános befektetési terméke. Most hathavi aktuális közös havi jövedelemnek megfelelő biztonsági tartalékot és külön nagyobb lakásfelújítási célokat követünk: név, kezdőösszeg, teljes célösszeg, opcionális határidő, megjegyzés, befizetés/kivétel, előzmények. A tartalék célja a kézzel megadott aktuális havi jövedelemalap hatszorosa; nem a hiányosan rögzített hónapból következtetünk. A pénz ugyanazon számlán is elkülöníthető, vagy megtakarítási számlára kerülhet. Célzsebek közti átcsoportosítás nem új félretétel és nem bankszámlamozgás. Örs külön marad. Részletek: [PHASE-7.md](PHASE-7.md).
+
 ## 4. Számítási logika
 
 Az Excelben hónapról hónapra kicsit eltérő képletek voltak. Ezeket **egyetlen közös szabályra** kell cserélni.
@@ -289,9 +293,9 @@ Az Excelben hónapról hónapra kicsit eltérő képletek voltak. Ezeket **egyet
 - **Tényleges félretétel** = a családi megtakarítási célhoz kapcsolt, valóban rögzített nettó megtakarítási pénzmozgások összege. Örs befizetése és az ideiglenes alszámlás hitelfedezet nem tartozik ide; az összetartozó pénzmozgás és befektetési bejegyzés egyszer számít. A megtakarításból visszavett pénz csökkenti a nettó teljesítést.
 - **Megtakarítási cél maradéka** = megtakarítási cél − tényleges félretétel; negatív érték túlteljesítés. Mindkét összeg és a különbség megjelenik.
 - **Összbevétel (felhasználható)** = összes bevétel − megtakarítási cél. A tényleges félretételt a terv szerinti képlet nem vonja le még egyszer.
-- **Havi CF** = felhasználható bevétel − havi összkiadás − Örs havi tényleges befizetése. A befizetés külön sor, nem újra hozzáadott fogyasztási kiadás. Példa: 1 000 000 Ft bevétel − 100 000 Ft családi megtakarítási cél − 600 000 Ft kiadás − 20 000 Ft Örsnek = 280 000 Ft CF.
+- **Havi CF** = felhasználható bevétel − havi összkiadás − Örs havi tényleges befizetése + visszakapott személyes kölcsöntőke + felvett személyes kölcsön − adott személyes kölcsön − kapott személyes kölcsön törlesztése. A négy kamatmentes tőkemozgás külön CF-sor, nem fogyasztási kiadás vagy Munka/Egyéb bevétel, nem növeli a megtakarítási célt. A befizetés külön sor, nem újra hozzáadott fogyasztási kiadás. Példa: 1 000 000 Ft bevétel − 100 000 Ft családi megtakarítási cél − 600 000 Ft kiadás − 20 000 Ft Örsnek = 280 000 Ft CF.
 - **Havi nyitó összeg** = az előző hónap záró összege (januárban az évi nyitó összeg)
-- **Terv szerinti havi maradék (korábbi nevén havi záró összeg)** = havi nyitó + havi CF = havi nyitó + felhasználható bevétel − havi összkiadás − Örs havi tényleges befizetése.
+- **Terv szerinti havi maradék (korábbi nevén havi záró összeg)** = havi nyitó + havi CF = havi nyitó + felhasználható bevétel − havi összkiadás − Örs havi tényleges befizetése + személyes kölcsönök nettó CF-hatása.
 - **Valós számlaegyenleg** = az adott számla valós nyitó egyenlege + minden tényleges bejövő pénzmozgás − minden tényleges kimenő pénzmozgás. A megtakarítási cél puszta meghatározása nem csökkenti. Belső átvezetés a forrás- és célszámlát módosítja, egyszer-egyszer. A valós nyitóegyenlegek és a terv szerinti évi nyitó összeg külön beállítások.
 - A valós egyenleg és a terv szerinti maradék **külön mutatóként** szerepel; egyik sem helyettesíti a másikat. A számlacsoportok (szabad bankszámlák, kötött egyenlegek, gyermekmegtakarítás) külön összesíthetők.
 - **Anna egyenlege kivétel a forgalomból számított egyenlegek között**: csak dátumozott havi pillanatkép. Nem generál pénzmozgást, és nem módosítja a terv szerinti éves/havi nyitó-záró láncot.
@@ -427,7 +431,7 @@ Az app a hónap elején felkínálja ezeket létrehozásra, egy kattintással j�
 - Egészségpénztári utólagos térítés és esetleges adójóváírás részletes elszámolása későbbi ilyen használat esetén; most a saját befizetés és külön egyenleg követése szükséges. Szolgáltatók és nyitó egyenlegek kézzel megadhatók.
 - A meglévő és később felvett hitelek szerződéses részletei, az alszámlán maradó többlet célja, Örs havi összege/esedékessége/forrásszámlája és nyitó befektetési értékei: a felhasználó adja meg az appban; az import kihagyása miatt banki azonosító nem előfeltétel.
 - Nulla tervnél a százalékos terv–tény megjelenítése, valamint nem véges tizedes átlagok megjelenítése egész forintra kerekítés nélkül.
-- Általános befektetések kamatszámítása és személyes kölcsönök/kintlévőségek részletszabályai későbbi feladatok; a jelenlegi banki hiteleket és babakötvényt ez nem halasztja el.
+- A személyes kölcsönök részletszabályai 2026.10.15-én tisztázva: egyelőre kamatmentes adott/kapott tőke, részfizetés, négy külön CF-sor, rendezéskor megmaradó előzmények. Általános befektetési termék jelenleg nincs; most hathavi jövedelemtartalék és felújítási célzsebek készülnek. Konkrét termék kamat-/hozamfeltételei későbbi ilyen igénynél tisztázandók.
 
 ---
 
@@ -491,6 +495,8 @@ A fejlesztő (Codex) választhat másik stacket, de ez a javaslat:
 ---
 
 ## 10. Fejlesztési fázisok (jóváhagyott terv)
+
+A felhasználó 2026.10.15-én jóváhagyta a **7. fázist: Kintlévőségeim és megtakarítási célzsebek**. Kamatmentes személyes kölcsönök, külön CF-tőkesorok; konkrét általános befektetés helyett hathavi jelenlegi jövedelemtartalék és nagyobb felújítási célok. Ezzel a jelenleg pontosított kézi pénzügyi kör lefedett; a jövőbeli befektetési termékek kamata nem feltételezhető. Részletek és ellenőrzési határok: [PHASE-7.md](PHASE-7.md).
 
 A felhasználó 2026.10.15-én jóváhagyta a **6. fázist: Figyelmeztetések és üzleti/magán riport**, majd külön kérte a felületi és esti jelzés mellett az azonnali értesítést is a keret elérésekor. Részletes működési szabályok és ellenőrzések: [PHASE-6.md](PHASE-6.md). A figyelmeztetési alap a havi terv és áthozott maradék; a 80% felületi/esti, a 100%-os elérés/túllépés azonnali jelzést ad a jelenlegi hónap új rögzítésekor, kategória/készülék/hónap szerint egyszer. Az üzleti és magán bontás összege egyezik a teljes időszakéval; a családi CF képlete változatlan.
 

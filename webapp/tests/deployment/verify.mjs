@@ -11,11 +11,13 @@ const password='QA-'+randomBytes(16).toString('hex');
 // Disposable localhost CA only; actual deployment requires a trusted public certificate.
 const browser=await chromium.launch({args:['--ignore-certificate-errors']});
 const errors=[];
+const failedApi=[];
 let diagnosticPage;
 try {
     const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800}});
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     diagnosticPage=page;
+    page.on('response',response=>{const path=new URL(response.url()).pathname;if(path.startsWith('/passkey/')&&response.status()>=400)failedApi.push({path,status:response.status()});});
     await page.goto('https://localhost:18443/belepes');
     await page.getByText('Az első belépés létrehozásához',{exact:false}).waitFor();
     assert.equal(await page.locator('form').count(),0);
@@ -50,7 +52,7 @@ try {
     assert.deepEqual(errors,[]);
     const manifest=await (await context.request.get('https://localhost:18443/manifest.webmanifest')).json();assert.equal(manifest.name,'Buksza');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
-    for(const route of ['/zsebpenzek','/befektetesek','/eves']){
+    for(const route of ['/zsebpenzek','/befektetesek','/eves','/kintlevosegeim','/megtakaritasi-celok']){
         await page.goto('https://localhost:18443'+route);
         await page.locator('h1').waitFor();
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
@@ -64,6 +66,31 @@ try {
     assert.match(await page.getByRole('region',{name:'Magán időszaki összesítő'}).innerText(),/1 234/);
     const businessExport=await context.request.get('https://localhost:18443/uzleti-riport/export?format=xlsx');
     assert.equal(businessExport.status(),200);assert.equal((await businessExport.body()).subarray(0,2).toString(),'PK');
+    await page.goto('https://localhost:18443/megtakaritasi-celok');
+    await page.getByRole('button',{name:'Új megtakarítási cél',exact:true}).click();
+    await page.getByLabel('Nyilvántartás típusa',{exact:true}).selectOption('reserve');
+    await page.getByLabel('Cél neve',{exact:true}).fill('QA hathavi tartalék');
+    await page.getByLabel('Jelenlegi közös havi jövedelem (Ft)',{exact:true}).fill('700000');
+    await page.getByRole('button',{name:'Nyilvántartás mentése',exact:true}).click();
+    const reserve=page.getByRole('region',{name:'QA hathavi tartalék',exact:true});
+    await reserve.waitFor();assert.match(await reserve.innerText(),/4 200 000/);
+    await reserve.getByRole('button',{name:'Félreteszek',exact:true}).click();
+    await page.getByLabel('Összeg (Ft)',{exact:true}).fill('123');
+    await page.getByRole('button',{name:'Pénzmozgás mentése',exact:true}).click();
+    await page.locator('dialog').waitFor({state:'detached'});
+    assert.match(await reserve.locator('.position-balance').innerText(),/123/);
+    await page.goto('https://localhost:18443/kintlevosegeim');
+    await page.getByRole('button',{name:'Új személyes kölcsön',exact:true}).click();
+    await page.getByLabel('Partner / kölcsön neve',{exact:true}).fill('QA személyes kölcsön');
+    await page.getByRole('button',{name:'Nyilvántartás mentése',exact:true}).click();
+    const claim=page.getByRole('region',{name:'QA személyes kölcsön',exact:true});
+    await claim.getByRole('button',{name:'További kölcsön',exact:true}).click();
+    await page.getByLabel('Összeg (Ft)',{exact:true}).fill('200');
+    await page.getByRole('button',{name:'Pénzmozgás mentése',exact:true}).click();
+    await page.locator('dialog').waitFor({state:'detached'});
+    assert.match(await claim.locator('.position-balance').innerText(),/200/);
+    const positionExport=await context.request.get('https://localhost:18443/export?year=2026&format=csv&sheet='+encodeURIComponent('Nyilvántartások'));
+    assert.equal(positionExport.status(),200);assert.match(await positionExport.text(),/QA hathavi tartalék/);
     const webauthn=await context.newCDPSession(page);await webauthn.send('WebAuthn.enable');
     await webauthn.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
     await page.goto('https://localhost:18443/beallitasok');
@@ -81,11 +108,11 @@ try {
     await page.getByRole('button',{name:'Belépés passkeyjel',exact:true}).click();
     await page.getByRole('heading',{name:'Szia, Telepítő QA!'}).waitFor();
     await page.screenshot({path:resolve(root,'docs/screenshots/installer-qa-360.png'),fullPage:true});
-    console.log('Production QA: HTTPS/FPM, protected setup, actual entry, restart persistence, push key, PWA, 360px, phase four pages, XLSX/encrypted backup and real passkey registration/login passed.');
+    console.log('Production QA: HTTPS/FPM, protected setup, actual entry, restart persistence, push key, PWA, 360px, phase four/seven pages and actual goal/loan writes, XLSX/encrypted backup and real passkey registration/login passed.');
 } catch(error) {
     if(diagnosticPage) {
         await diagnosticPage.screenshot({path:resolve(root,'docs/screenshots/installer-qa-failure.png'),fullPage:true}).catch(()=>{});
-        console.error('Production QA failure:',diagnosticPage.url(),errors);
+        console.error('Production QA failure:',diagnosticPage.url(),errors,failedApi);
     }
     throw error;
 } finally {await browser.close();}

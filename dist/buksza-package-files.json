@@ -1,5 +1,5 @@
 {
-  "payloadSha256": "7588f064426f4007528da7c93f77bfc7c926be4c2eac39bd70a5061244b0ad42",
+  "payloadSha256": "7994a4c916ac2b8f9c210cc625cb7fc2f05e15d55c68739e68995b96cc1766b5",
   "files": [
     ".dockerignore",
     "docker/production/Caddyfile",
@@ -23,6 +23,7 @@
     "webapp/app/Finance/PhaseFourReports.php",
     "webapp/app/Finance/PlanStore.php",
     "webapp/app/Finance/PlanSuggestions.php",
+    "webapp/app/Finance/Positions.php",
     "webapp/app/Finance/RecurringPlanner.php",
     "webapp/app/Finance/RecurringStore.php",
     "webapp/app/Finance/TransactionInput.php",
@@ -35,6 +36,7 @@
     "webapp/app/Http/Controllers/InvestmentController.php",
     "webapp/app/Http/Controllers/LoanController.php",
     "webapp/app/Http/Controllers/PasskeyController.php",
+    "webapp/app/Http/Controllers/PositionController.php",
     "webapp/app/Http/Controllers/PushController.php",
     "webapp/app/Http/Controllers/RecurringController.php",
     "webapp/app/Http/Middleware/HandleInertiaRequests.php",
@@ -79,6 +81,7 @@
     "webapp/database/migrations/2026_10_15_000004_add_investments_and_passkeys.php",
     "webapp/database/migrations/2026_10_15_000005_add_insight_reminder_setting.php",
     "webapp/database/migrations/2026_10_15_000006_add_instant_budget_setting.php",
+    "webapp/database/migrations/2026_10_15_000007_create_claims_and_savings_goals.php",
     "webapp/database/seeders/DatabaseSeeder.php",
     "webapp/lang/hu/validation.php",
     "webapp/package-lock.json",
@@ -106,6 +109,7 @@
     "webapp/resources/js/pages/Finance.tsx",
     "webapp/resources/js/pages/Loans.tsx",
     "webapp/resources/js/pages/PhaseFour.tsx",
+    "webapp/resources/js/pages/Positions.tsx",
     "webapp/resources/js/pages/Recurring.tsx",
     "webapp/resources/js/passkeys.ts",
     "webapp/resources/js/phase-four-types.ts",

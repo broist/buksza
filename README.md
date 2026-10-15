@@ -4,6 +4,8 @@ Magyar, mobilra tervezett, egyfelhasználós családi pénzügyi webapp. Laravel
 
 ## Indítás Windows alatt
 
+**7. fázis:** Továbbiak → Kintlévőségeim (kamatmentes adott/kapott személyes kölcsönök, részfizetés, külön havi/éves CF-sorok); Megtakarítási célok (hathavi aktuális jövedelemtartalék és felújítási zsebek, meglévő félretételek hozzárendelése, belső átcsoportosítás). A pénz maradhat ugyanazon bankszámlán is, újabb bankmozgás nélkül. Örs külön marad. Régi mentések visszaállíthatók. Részletek: [PHASE-7.md](docs/PHASE-7.md).
+
 **6. fázis:** havi keretfigyelmeztetések, rendszeres fizetések összegváltozása, esti összefoglaló és azonnali keretelérési push; Továbbiak → Üzleti / magán riport, dátumtartományos bontással és Excel/CSV-exporttal. Részletek: [PHASE-6.md](docs/PHASE-6.md).
 
 **5. fázis – Működési állapot és mentések:** Beállítások → ütemező-életjel, utolsó 20 ütemezett értesítésküldés, szervermentési kísérlet és utolsó sikeres/napi automatikus mentés. Állapotfrissítés az el nem mentett űrlapok megőrzésével. A szerverfrissítéshez ismét futtatni kell a telepítőt. Részletek: [PHASE-5.md](docs/PHASE-5.md).

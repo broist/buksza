@@ -158,6 +158,7 @@ final class Calculator
         $totalSavings = new Exact;
         $totalActual = 0;
         $totalChild = 0;
+        $annualLoans = array_fill_keys(Positions::LOAN_TYPES, 0);
         $yearDays = (int) (new DateTimeImmutable("$year-12-31"))->format('z') + 1;
 
         for ($month = 1; $month <= 12; $month++) {
@@ -169,6 +170,7 @@ final class Calculator
             $income = ['Munka' => 0, 'Egyéb' => 0];
             $actual = 0;
             $child = 0;
+            $loanFlows = array_fill_keys(Positions::LOAN_TYPES, 0);
 
             foreach ($transactions as $tx) {
                 if (! str_starts_with($tx['date'], $prefix.'-') || ($tx['informational'] ?? false)) {
@@ -188,6 +190,8 @@ final class Calculator
                     $actual += $amount;
                 } elseif ($tx['type'] === 'saving_return') {
                     $actual -= $amount;
+                } elseif (in_array($tx['type'], Positions::LOAN_TYPES, true)) {
+                    $loanFlows[$tx['type']] += $amount;
                 } elseif ($tx['type'] === 'child_saving') {
                     $child += $amount;
                 }
@@ -213,11 +217,15 @@ final class Calculator
             $grossIncome = array_sum($income);
             $savings = (new Exact($grossIncome))->times($rate)->divide(100);
             $usable = (new Exact($grossIncome))->minus($savings);
-            $cf = $usable->minus($expense)->minus($child);
+            $loanNet = $loanFlows['loan_given_return'] + $loanFlows['loan_received'] - $loanFlows['loan_given'] - $loanFlows['loan_repaid'];
+            foreach ($loanFlows as $key => $value) {
+                $annualLoans[$key] += $value;
+            }
+            $cf = $usable->minus($expense)->minus($child)->plus($loanNet);
             $closing = $opening->plus($cf);
             $max = max(array_column($days, 'expense'));
             $mostExpensive = $max > 0 ? sprintf('%s-%02d', $prefix, array_search($max, array_column($days, 'expense'), true) + 1) : null;
-            $months[$month] = ['month' => $month, 'daysCount' => $daysCount, 'elapsedDays' => $divisor, 'days' => $days, 'categories' => $categoryRows, 'expense' => $expense, 'income' => $grossIncome, 'incomeSources' => $income, 'plan' => $totalPlan, 'savingsTarget' => $savings, 'actualSavings' => $actual, 'savingsRemaining' => $savings->minus($actual), 'childSavings' => $child, 'usableIncome' => $usable, 'cf' => $cf, 'opening' => $opening, 'closing' => $closing, 'dailyAverage' => (new Exact($expense))->divide($divisor), 'mostExpensiveDay' => $mostExpensive, 'mostExpensiveAmount' => $max];
+            $months[$month] = ['month' => $month, 'daysCount' => $daysCount, 'elapsedDays' => $divisor, 'days' => $days, 'categories' => $categoryRows, 'expense' => $expense, 'income' => $grossIncome, 'incomeSources' => $income, 'plan' => $totalPlan, 'savingsTarget' => $savings, 'actualSavings' => $actual, 'savingsRemaining' => $savings->minus($actual), 'loanFlows' => $loanFlows, 'loanNet' => $loanNet, 'childSavings' => $child, 'usableIncome' => $usable, 'cf' => $cf, 'opening' => $opening, 'closing' => $closing, 'dailyAverage' => (new Exact($expense))->divide($divisor), 'mostExpensiveDay' => $mostExpensive, 'mostExpensiveAmount' => $max];
             $opening = $closing;
             $totalCf = $totalCf->plus($cf);
             $totalSavings = $totalSavings->plus($savings);
@@ -240,7 +248,7 @@ final class Calculator
             $sources[$name] = ['total' => $amount, 'monthlyAverage' => (new Exact($amount))->divide(12), 'dailyAverage' => (new Exact($amount))->divide($yearDays)];
         }
 
-        return ['months' => $months, 'annual' => ['daysCount' => $yearDays, 'categories' => $annualRows, 'incomeSources' => $sources, 'expense' => $annualExpense, 'income' => $gross, 'monthlyExpenseAverage' => (new Exact($annualExpense))->divide(12), 'dailyExpenseAverage' => (new Exact($annualExpense))->divide($yearDays), 'monthlyIncomeAverage' => (new Exact($gross))->divide(12), 'dailyIncomeAverage' => (new Exact($gross))->divide($yearDays), 'savingsTarget' => $totalSavings, 'usableIncome' => (new Exact($gross))->minus($totalSavings), 'savingsRemaining' => $totalSavings->minus($totalActual), 'actualSavings' => $totalActual, 'childSavings' => $totalChild, 'cf' => $totalCf, 'monthlyCf' => $totalCf->divide(12), 'dailyCf' => $totalCf->divide($yearDays), 'closing' => $opening]];
+        return ['months' => $months, 'annual' => ['daysCount' => $yearDays, 'categories' => $annualRows, 'incomeSources' => $sources, 'expense' => $annualExpense, 'income' => $gross, 'monthlyExpenseAverage' => (new Exact($annualExpense))->divide(12), 'dailyExpenseAverage' => (new Exact($annualExpense))->divide($yearDays), 'monthlyIncomeAverage' => (new Exact($gross))->divide(12), 'dailyIncomeAverage' => (new Exact($gross))->divide($yearDays), 'savingsTarget' => $totalSavings, 'usableIncome' => (new Exact($gross))->minus($totalSavings), 'savingsRemaining' => $totalSavings->minus($totalActual), 'actualSavings' => $totalActual, 'loanFlows' => $annualLoans, 'loanNet' => $annualLoans['loan_given_return'] + $annualLoans['loan_received'] - $annualLoans['loan_given'] - $annualLoans['loan_repaid'], 'childSavings' => $totalChild, 'cf' => $totalCf, 'monthlyCf' => $totalCf->divide(12), 'dailyCf' => $totalCf->divide($yearDays), 'closing' => $opening]];
     }
 
     public function accountBalance(array $account, array $transactions, string $through): int
@@ -257,7 +265,7 @@ final class Calculator
             if ($tx['account_id'] != $account['id']) {
                 continue;
             }
-            $balance += in_array($tx['type'], ['income', 'saving_return', 'loan_repayment'], true) ? $amount : -$amount;
+            $balance += in_array($tx['type'], ['income', 'saving_return', 'loan_repayment', 'loan_given_return', 'loan_received'], true) ? $amount : -$amount;
             $balance -= (int) ($tx['fee_amount'] ?? 0);
         }
 

@@ -4,7 +4,7 @@ import type { Money } from './types';
 
 export const months = ['január','február','március','április','május','június','július','augusztus','szeptember','október','november','december'];
 export const amount = (value: number) => `${value < 0 ? '−' : ''}${String(Math.abs(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`;
-export const labels: Record<string,string> = { expense: 'Kiadás', income: 'Bevétel', transfer: 'Átvezetés', saving: 'Családi félretétel', saving_return: 'Megtakarítás visszavétele', child_saving: 'Örs megtakarítása' };
+export const labels: Record<string,string> = { loan_given:'Kölcsön adása', loan_given_return:'Adott kölcsön visszakapott tőkéje', loan_received:'Kölcsön felvétele', loan_repaid:'Kapott kölcsön törlesztése', expense: 'Kiadás', income: 'Bevétel', transfer: 'Átvezetés', saving: 'Családi félretétel', saving_return: 'Megtakarítás visszavétele', child_saving: 'Örs megtakarítása' };
 type MoneyInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type' | 'inputMode'> & {
     value: string | number;
     onValueChange: (raw: string) => void;

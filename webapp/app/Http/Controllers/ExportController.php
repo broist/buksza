@@ -23,7 +23,7 @@ class ExportController extends Controller
 
     public function download(Request $request, AnnualExport $export)
     {
-        $data = $request->validate(['year' => 'required|integer|between:2000,2100', 'format' => 'required|in:csv,xlsx', 'sheet' => 'sometimes|in:Összegzés,Hónapok,Kategóriák,Tételek,Zsebpénzek,Örs babakötvényei']);
+        $data = $request->validate(['year' => 'required|integer|between:2000,2100', 'format' => 'required|in:csv,xlsx', 'sheet' => 'sometimes|in:Összegzés,Hónapok,Kategóriák,Tételek,Zsebpénzek,Örs babakötvényei,Nyilvántartások,Célátcsoportosítások']);
         $sheets = $export->sheets($data['year']);
         $xlsx = $data['format'] === 'xlsx';
         $body = $xlsx ? $export->xlsx($sheets) : $export->csv($sheets[$data['sheet'] ?? 'Tételek']);

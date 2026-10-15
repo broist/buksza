@@ -8,30 +8,37 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\PasskeyController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PushController;
 use App\Http\Controllers\RecurringController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/belepes', [AuthController::class, 'show'])->name('login');
-Route::post('/belepes', [AuthController::class, 'login'])->middleware('throttle:5,1');
-Route::post('/elso-belepes', [AuthController::class, 'setup'])->middleware('throttle:5,1');
-Route::post('/passkey/login/opciok', fn (Request $request, PasskeyController $controller) => $controller->options($request, 'login'))->middleware('throttle:10,1');
-Route::post('/passkey/login', [PasskeyController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/belepes', [AuthController::class, 'login'])->middleware('throttle:5,1,password-login:');
+Route::post('/elso-belepes', [AuthController::class, 'setup'])->middleware('throttle:5,1,account-setup:');
+Route::post('/passkey/login/opciok', fn (Request $request, PasskeyController $controller) => $controller->options($request, 'login'))->middleware('throttle:10,1,passkey-login:');
+Route::post('/passkey/login', [PasskeyController::class, 'login'])->middleware('throttle:10,1,passkey-login:');
 Route::middleware('auth')->group(function () {
-    Route::post('/passkey/register/opciok', fn (Request $request, PasskeyController $controller) => $controller->options($request, 'register'))->middleware('throttle:5,1');
-    Route::post('/passkey/register', [PasskeyController::class, 'register'])->middleware('throttle:5,1');
-    Route::delete('/passkey/{id}', [PasskeyController::class, 'delete'])->middleware('throttle:5,1');
+    Route::post('/passkey/register/opciok', fn (Request $request, PasskeyController $controller) => $controller->options($request, 'register'))->middleware('throttle:5,1,passkey-register:');
+    Route::post('/passkey/register', [PasskeyController::class, 'register'])->middleware('throttle:5,1,passkey-register:');
+    Route::delete('/passkey/{id}', [PasskeyController::class, 'delete'])->middleware('throttle:5,1,passkey-delete:');
     Route::post('/kilepes', [AuthController::class, 'logout']);
-    foreach (['/', '/honap', '/tervezes', '/beallitasok', '/eves', '/szamlak', '/hitelek', '/rendszeres', '/esti-rogzites', '/zsebpenzek', '/befektetesek', '/uzleti-riport'] as $path) {
+    foreach (['/', '/honap', '/tervezes', '/beallitasok', '/eves', '/szamlak', '/hitelek', '/rendszeres', '/esti-rogzites', '/zsebpenzek', '/befektetesek', '/uzleti-riport', '/kintlevosegeim', '/megtakaritasi-celok'] as $path) {
         Route::get($path, [FinanceController::class, 'show']);
     }
     Route::post('/tetelek', [FinanceController::class, 'create']);
-    Route::get('/export', [ExportController::class, 'download'])->middleware('throttle:20,1');
-    Route::get('/uzleti-riport/export', [ExportController::class, 'business'])->middleware('throttle:20,1');
-    Route::get('/mentes', [BackupController::class, 'download'])->middleware('throttle:10,1');
+    Route::post('/nyilvantartasok', [PositionController::class, 'save']);
+    Route::put('/nyilvantartasok/{id}', [PositionController::class, 'save']);
+    Route::post('/nyilvantartasok/{id}/mozgas', [PositionController::class, 'payment']);
+    Route::post('/nyilvantartasok/{id}/kapcsolat', [PositionController::class, 'link']);
+    Route::post('/celok/atcsoportositas', [PositionController::class, 'transfer']);
+    Route::delete('/celok/atcsoportositas/{id}', [PositionController::class, 'deleteTransfer']);
+    Route::get('/export', [ExportController::class, 'download'])->middleware('throttle:20,1,finance-export:');
+    Route::get('/uzleti-riport/export', [ExportController::class, 'business'])->middleware('throttle:20,1,finance-export:');
+    Route::get('/mentes', [BackupController::class, 'download'])->middleware('throttle:10,1,finance-backup:');
     Route::get('/mentes/elozo', [BackupController::class, 'previous']);
-    Route::post('/visszaallitas', [BackupController::class, 'restore'])->middleware('throttle:3,1');
+    Route::post('/visszaallitas', [BackupController::class, 'restore'])->middleware('throttle:3,1,finance-restore:');
     Route::post('/befektetesek', [InvestmentController::class, 'save']);
     Route::put('/befektetesek/{investment}', [InvestmentController::class, 'save']);
     Route::post('/befektetesek/{investment}/terv', [InvestmentController::class, 'plan']);
@@ -56,7 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/rendszeres/{template}/teljesites', [RecurringController::class, 'confirm']);
     Route::post('/honap-teljes', [RecurringController::class, 'observation']);
     Route::post('/ertesitesek', [PushController::class, 'settings']);
-    Route::post('/ertesitesek/eszkoz', [PushController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('/ertesitesek/eszkoz', [PushController::class, 'register'])->middleware('throttle:10,1,push-register:');
     Route::delete('/ertesitesek/eszkoz/{device}', [PushController::class, 'disable']);
-    Route::post('/ertesitesek/eszkoz/{device}/proba', [PushController::class, 'trial'])->middleware('throttle:3,1');
+    Route::post('/ertesitesek/eszkoz/{device}/proba', [PushController::class, 'trial'])->middleware('throttle:3,1,push-trial:');
 });

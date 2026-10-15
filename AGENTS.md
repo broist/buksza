@@ -1,5 +1,7 @@
 # Buksza repository workflow
 
+- Phase 7 was authorized on 2026-10-15: interest-free personal receivables/payables with four separate CF principal flows; user has no general investment products yet and instead requests six times current monthly family income as a reserve target plus renovation goal pockets. See `docs/PHASE-7.md`. A position is linked to the canonical transaction once, not a duplicate cash ledger. Protect chronological nonnegative balances on edits/deletion/undo/recurring restore. In-place goal allocations keep bank balance/turnover unchanged. Legacy phase 1–6 encrypted backups remain readable.
+
 - The user requested publishing this project and subsequent completed changes to `https://github.com/broist/buksza.git`. Commit and push completed, checked work to this remote; do not force-push. Report any authentication or push failure accurately.
 - Follow `webapp/AGENTS.md` for application changes, phase scope, mobile-first work and isolated testing.
 - Phase 6 was authorized on 2026-10-15: budget/recurring alerts and business/personal reporting. The user explicitly requested both evening summaries and immediate notifications on reaching the budget. See `docs/PHASE-6.md`; preserve the once-per-device/category/month claim and do not let a push failure undo a saved financial record.

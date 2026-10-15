@@ -43,4 +43,19 @@ class PasskeyTest extends TestCase
         $this->delete("/passkey/$id", ['password' => 'passkey-test-password'])->assertNotFound();
         $this->assertDatabaseCount('passkeys', 1);
     }
+
+    public function test_exports_do_not_exhaust_passkey_registration_rate_limit_and_its_own_limit_remains_enforced(): void
+    {
+        $this->seed();
+        $this->actingAs(User::factory()->create(['password' => 'passkey-test-password']));
+        for ($i = 0; $i < 4; $i++) {
+            $this->get('/export?year=2026&format=csv')->assertOk();
+        }
+        $this->postJson('/passkey/register/opciok', ['password' => 'passkey-test-password'])->assertOk();
+        $this->postJson('/passkey/register', [])->assertUnprocessable();
+        for ($i = 0; $i < 3; $i++) {
+            $this->postJson('/passkey/register/opciok', ['password' => 'wrong'])->assertUnprocessable();
+        }
+        $this->postJson('/passkey/register/opciok', ['password' => 'wrong'])->assertStatus(429);
+    }
 }
