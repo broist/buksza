@@ -23,7 +23,9 @@ COPY --from=frontend /src/public/build /app/public/build
 COPY docker/production/php.ini /usr/local/etc/php/conf.d/buksza.ini
 COPY docker/production/entrypoint.sh /usr/local/bin/buksza-entrypoint
 RUN mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
-    && chmod +x /usr/local/bin/buksza-entrypoint \
+    && chmod -R u=rwX,go=rX /app \
+    && chmod 0755 /usr/local/bin/buksza-entrypoint \
+    && chmod 0644 /usr/local/etc/php/conf.d/buksza.ini \
     && chown -R www-data:www-data bootstrap/cache storage \
     && php artisan package:discover --no-ansi
 ENV APP_ENV=production APP_DEBUG=false
@@ -33,4 +35,6 @@ CMD ["php-fpm", "-F"]
 FROM nginx:alpine AS web
 COPY --from=app /app/public /app/public
 COPY docker/production/nginx.conf /etc/nginx/conf.d/default.conf
+RUN chmod -R u=rwX,go=rX /app/public \
+    && chmod 0644 /etc/nginx/conf.d/default.conf
 EXPOSE 8080

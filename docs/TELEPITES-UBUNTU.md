@@ -108,10 +108,11 @@ iPhone beállítás: [PUSH-IPHONE.md](PUSH-IPHONE.md). A tényleges iPhone-fogad
 
 ```powershell
 node scripts/package-installer.mjs
-docker build --target app -f docker/production/Dockerfile -t buksza-app:installer-qa .
-docker build --target web -f docker/production/Dockerfile -t buksza-web:installer-qa .
+node scripts/test-installer-images.mjs
 .\scripts\test-production.ps1
 ```
+
+A képek próbája a csomagolt telepítőt Linuxban, szigorú `077` umask mellett bontja ki; a forrást közvetlenül, a Unix-jogosultságokat megőrizve továbbítja a Docker építésnek. Szándékosan `700`-as `bootstrap` könyvtárral és `600`-as `app.php` fájllal is ellenőrzi, hogy a kész képben a `www-data` felhasználó képes elindítani a Laravelt, és nem írhatja át az alkalmazás forrását. A Dockerfile az alkalmazás olvasási jogosultságait külön állítja be; az éles szerver titkos fájljainak jogosultságait ez nem lazítja.
 
 Az integrációs próba kizárólag a `buksza-installer-qa` Docker-projektet és külön `qa.sqlite` fájlt használ. HTTPS/Caddy → Nginx → PHP-FPM, védett első belépés, saját jelszó létrehozása, secure munkamenet, valódi tételrögzítés, újraindítás utáni adat- és munkamenet-megőrzés, meglévő Web Push kulcs, PWA és 360 px-es felület sikeresen ellenőrizve. A QA saját localhost-tanúsítványt használ; a valódi Let's Encrypt/tanúsítvány-kiadást és AWS-hálózatot helyben nem lehet igazolni.
 
