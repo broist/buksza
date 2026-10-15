@@ -1,5 +1,5 @@
 {
-  "payloadSha256": "82c345a68d3ee275729538fdbfbb0ee5b25ecc9be14f4ee013eb095e130e3840",
+  "payloadSha256": "45735f22317b420d04d8af9b20a00c5b294291150be904ed08e3e931ac029241",
   "files": [
     ".dockerignore",
     "docker/production/Caddyfile",

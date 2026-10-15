@@ -260,8 +260,15 @@ REPO
 prepare_root() {
     [[ ! -L "$INSTALL_ROOT" ]] || { fail 'A telepítési könyvtár nem lehet szimbolikus link.'; return 1; }
     if [[ -e "$INSTALL_ROOT" ]]; then
+        [[ -d "$INSTALL_ROOT" ]] || { fail 'A /opt/buksza útvonalat egy fájl foglalja.'; return 1; }
         if [[ ! -f "$INSTALL_ROOT/.buksza-install" ]] || ! grep -Fxq 'buksza-installer-v1' "$INSTALL_ROOT/.buksza-install"; then
-            fail 'A /opt/buksza már létezik, de nem ehhez a telepítőhöz tartozik.'; return 1
+            local existing_entry
+            existing_entry=$(find "$INSTALL_ROOT" -mindepth 1 -maxdepth 1 -print -quit)
+            if [[ -n "$existing_entry" ]]; then
+                fail 'A /opt/buksza nem üres, és nem ehhez a telepítőhöz tartozik. A tartalmát nem módosítottuk.'; return 1
+            fi
+            install -d -m 0700 -o root -g root "$INSTALL_ROOT"
+            printf 'buksza-installer-v1\n' > "$INSTALL_ROOT/.buksza-install"
         fi
     else
         install -d -m 0700 "$INSTALL_ROOT"
