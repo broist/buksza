@@ -2,7 +2,7 @@
 
 - The user requested publishing this project and subsequent completed changes to `https://github.com/broist/buksza.git`. Commit and push completed, checked work to this remote; do not force-push. Report any authentication or push failure accurately.
 - Follow `webapp/AGENTS.md` for application changes, phase scope, mobile-first work and isolated testing.
-- On 2026-10-15 the user confirmed successful AWS deployment. Public `https://buksza.duktor.hu/up` and `/belepes` returned HTTP 200 with verified TLS. Actual iPhone push receipt, production scheduler heartbeat and the first scheduled backup still need verification; do not report them as tested.
+- On 2026-10-15 the user confirmed successful AWS deployment and actual iPhone push receipt with a screenshot. Public `https://buksza.duktor.hu/up` and `/belepes` returned HTTP 200 with verified TLS. Scheduled daily/month-end delivery, production scheduler heartbeat and the first scheduled backup still need verification; do not report them as tested.
 - Regenerate the self-contained installer with `node scripts/package-installer.mjs` whenever packaged application or deployment source changes. Commit the generated `dist/buksza-telepito.sh`, `.sha256` and package file manifest together with their source.
 - Never publish local databases, environment secrets, private keys, runtime files or generated QA screenshots/reports. `.env.example` is a blank configuration template and may be committed.
 - The user requests mode `0755` (`drwxr-xr-x`) for `/opt/buksza` itself. Keep this nonrecursive: secret environment files remain `0600`, backup directories `0700`.

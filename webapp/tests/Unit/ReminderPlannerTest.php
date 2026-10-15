@@ -7,6 +7,20 @@ use PHPUnit\Framework\TestCase;
 
 class ReminderPlannerTest extends TestCase
 {
+    public function test_titles_describe_the_reminder_and_keep_the_matching_destination(): void
+    {
+        $planner = new ReminderPlanner;
+        foreach ([
+            [['daily'], 'Esti pénzügyi emlékeztető', '/esti-rogzites?date=2026-10-31'],
+            [['anna'], 'Anna hónap végi egyenlege', '/szamlak?year=2026&month=10&anna=1'],
+            [['daily', 'anna'], 'Esti és hónap végi emlékeztető', '/esti-rogzites?date=2026-10-31&anna=1'],
+        ] as [$kinds, $title, $url]) {
+            $payload = $planner->payload('2026-10-31', $kinds);
+            self::assertSame($title, $payload['title']);
+            self::assertSame($url, $payload['url']);
+        }
+    }
+
     private function settings(array $extra = []): array
     {
         return ['daily_enabled' => true, 'anna_enabled' => true, 'daily_time' => '19:00', 'anna_time' => '19:00', ...$extra];

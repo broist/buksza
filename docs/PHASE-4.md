@@ -39,7 +39,7 @@ A pénzügyi mentés ugyanazon alkalmazáskulcshoz és pénzügyi adatmodellhez 
 
 ## Készüléken és éles szerveren még ellenőrizendő
 
-- iPhone-on a próbaértesítés és a napi/hónap végi jelzés tényleges fogadása.
+- iPhone-on az ütemezett napi/hónap végi jelzés tényleges fogadása. Az értesítés megérkezését a felhasználó 2026.10.15-én már képernyőképpel igazolta.
 - Az éles ütemező életjele és az első automatikus napi szervermentés.
 - Face ID/passkey valódi iPhone-on; a protokollt virtuális készülékkel teszteltük.
 - A 3 kezelési lépéses / 10 másodperces gyors rögzítés tényleges egykezes kényelme a saját telefonon. Az automatikus teszt nem helyettesíti ezt a használati próbát.

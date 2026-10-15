@@ -2,9 +2,13 @@
 
 ## Jelenlegi állapot
 
-A szerveroldali napi/hónap végi ütemezés, titkosított Web Push küldés, eszközregisztráció és próbaértesítés elkészült. Az AWS-telepítést a felhasználó 2026.10.15-én sikeresnek jelezte; a `https://buksza.duktor.hu/up` és a belépési oldal HTTPS-en 200 választ ad. A tényleges iPhone-os fogadás és az éles ütemező életjele még ellenőrizendő.
+A szerveroldali napi/hónap végi ütemezés, titkosított Web Push küldés, eszközregisztráció és próbaértesítés elkészült. Az AWS-telepítést a felhasználó 2026.10.15-én sikeresnek jelezte; a `https://buksza.duktor.hu/up` és a belépési oldal HTTPS-en 200 választ ad. A felhasználó ugyanazon a napon képernyőképpel megerősítette az iPhone-os értesítés megérkezését. Az ütemezett napi/hónap végi küldés és az éles ütemező életjele még ellenőrizendő.
 
-A felhasználó megadta a telepítés célját: **Ubuntu, `buksza.duktor.hu`, `35.158.45.80`** (2026.10.15-i döntés). A DNS-t a felhasználó Cloudflare-ben kezeli; a telepítő IP-ellenőrzése miatt kezdetben DNS only rekord szükséges. A felhasználó egy saját maga által futtatható scriptet kért; elkészült a dist/buksza-telepito.sh egyfájlos Ubuntu-telepítő. Használat: [TELEPITES-UBUNTU.md](TELEPITES-UBUNTU.md). A szerverre történő telepítés elkészült; a készülékpróba továbbra is hátravan.
+A felhasználó megadta a telepítés célját: **Ubuntu, `buksza.duktor.hu`, `35.158.45.80`** (2026.10.15-i döntés). A DNS-t a felhasználó Cloudflare-ben kezeli; a telepítő IP-ellenőrzése miatt kezdetben DNS only rekord szükséges. A felhasználó egy saját maga által futtatható scriptet kért; elkészült a dist/buksza-telepito.sh egyfájlos Ubuntu-telepítő. Használat: [TELEPITES-UBUNTU.md](TELEPITES-UBUNTU.md). A szervertelepítés és az értesítés készüléken történő fogadása igazolt.
+
+Az értesítés címe a teendőt jelzi: „Esti pénzügyi emlékeztető”, „Anna hónap végi egyenlege”, összevonáskor „Esti és hónap végi emlékeztető”, tesztnél „Próbaértesítés”. A Buksza alkalmazásnév külön jelenik meg. Frissítés után nyisd meg újra a kezdőképernyős appot, hogy letöltse az új értesítési workert; az értesítési engedély és az eszközregisztráció megmarad.
+
+A cím továbbadását, a hiányzó/sérült üzenet tartalék címét és a workerfrissítés aktiválását a `webapp` mappából futtatható `node --test tests/service-worker.test.mjs` ellenőrzi. A napi/havi címeket és céloldalakat a `ReminderPlannerTest` fedi le.
 
 ## Szerver előkészítése
 

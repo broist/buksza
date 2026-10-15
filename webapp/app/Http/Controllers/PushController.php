@@ -52,7 +52,7 @@ class PushController extends Controller
         abort_unless($device->user_id === $request->user()->id, 403);
         abort_unless($device->enabled, 422);
         try {
-            $result = $transport->send($device, ['title' => 'Buksza', 'body' => 'Próbaértesítés. A Buksza emlékeztetője ezen a telefonon fog megjelenni.', 'tag' => 'buksza-trial', 'url' => '/esti-rogzites']);
+            $result = $transport->send($device, ['title' => 'Próbaértesítés', 'body' => 'Az értesítések működnek ezen a telefonon.', 'tag' => 'buksza-trial', 'url' => '/esti-rogzites']);
         } catch (\Throwable) {
             $result = ['success' => false, 'expired' => false];
         }
