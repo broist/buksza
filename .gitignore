@@ -1,0 +1,25 @@
+webapp/vendor/
+webapp/node_modules/
+webapp/.env
+webapp/database/*.sqlite*
+webapp/public/build/
+webapp/public/hot
+webapp/storage/logs/*.log
+test-results/
+playwright-report/
+webapp/playwright-report/
+.env
+dist/*
+!dist/buksza-telepito.sh
+!dist/buksza-telepito.sha256
+!dist/buksza-package-files.json
+# Generated QA reports and screenshots stay local.
+docs/checks/
+docs/screenshots/
+# Runtime data and credentials must never be published.
+*.sqlite*
+*.pem
+*.key
+.env.*
+!.env.example
+**/auth.json

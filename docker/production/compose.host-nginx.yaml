@@ -1,0 +1,6 @@
+services:
+  web:
+    ports:
+      - "127.0.0.1:${BUKSZA_HTTP_PORT:?}:8080"
+  caddy:
+    profiles: [standalone-proxy]

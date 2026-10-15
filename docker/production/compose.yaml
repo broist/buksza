@@ -1,0 +1,65 @@
+name: buksza
+services:
+  app:
+    image: buksza-app:${BUKSZA_RELEASE:?}
+    build:
+      context: ../..
+      dockerfile: docker/production/Dockerfile
+      target: app
+    env_file: ${BUKSZA_HOME:?}/app.env
+    volumes:
+      - ${BUKSZA_HOME}/data:/data
+      - app_storage:/app/storage
+    networks: [backend]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, "php -r 'exit(is_file(\"/data/database.sqlite\") ? 0 : 1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+  scheduler:
+    image: buksza-app:${BUKSZA_RELEASE:?}
+    command: [php, artisan, schedule:work]
+    env_file: ${BUKSZA_HOME}/app.env
+    volumes:
+      - ${BUKSZA_HOME}/data:/data
+      - app_storage:/app/storage
+    networks: [backend]
+    depends_on: [app]
+    restart: unless-stopped
+  web:
+    image: buksza-web:${BUKSZA_RELEASE:?}
+    build:
+      context: ../..
+      dockerfile: docker/production/Dockerfile
+      target: web
+    networks: [edge, backend]
+    depends_on: [app]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O /dev/null http://127.0.0.1:8080/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      BUKSZA_DOMAIN: ${BUKSZA_DOMAIN:?}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    depends_on: [web]
+    restart: unless-stopped
+networks:
+  edge:
+  backend:
+volumes:
+  app_storage:
+  caddy_data:
+  caddy_config:

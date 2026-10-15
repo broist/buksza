@@ -1,0 +1,50 @@
+services:
+  app:
+    image: composer:2
+    working_dir: /app
+    command: php artisan serve --host=0.0.0.0 --port=8000 --no-reload
+    expose:
+      - "8000"
+    volumes:
+      - ./webapp:/app
+      - php_vendor:/app/vendor
+    environment:
+      APP_URL: http://localhost:18080
+      APP_ENV: local
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/database/database.sqlite
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: 43200
+      APP_LOCALE: hu
+      APP_TIMEZONE: Europe/Budapest
+    restart: unless-stopped
+  scheduler:
+    image: composer:2
+    working_dir: /app
+    command: php artisan schedule:work
+    volumes:
+      - ./webapp:/app
+      - php_vendor:/app/vendor
+    environment:
+      APP_URL: http://localhost:18080
+      APP_ENV: local
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/database/database.sqlite
+      APP_TIMEZONE: Europe/Budapest
+    depends_on:
+      - app
+    restart: unless-stopped
+  web:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:18080:80"
+    volumes:
+      - ./webapp/public:/app/public:ro
+      - ./docker/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      UPSTREAM: app:8000
+    depends_on:
+      - app
+    restart: unless-stopped
+volumes:
+  php_vendor:

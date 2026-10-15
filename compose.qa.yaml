@@ -1,0 +1,33 @@
+services:
+  qa:
+    image: composer:2
+    working_dir: /app
+    command: php artisan serve --host=0.0.0.0 --port=8000 --no-reload
+    expose:
+      - "8000"
+    volumes:
+      - ./webapp:/app
+      - php_vendor:/app/vendor
+    environment:
+      APP_ENV: testing
+      APP_URL: http://localhost:18081
+      APP_DEBUG: "false"
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /app/database/qa.sqlite
+      SESSION_DRIVER: database
+      SESSION_COOKIE: kassza_qa_session
+      CACHE_STORE: array
+      APP_TIMEZONE: Europe/Budapest
+  qa-web:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:18081:80"
+    volumes:
+      - ./webapp/public:/app/public:ro
+      - ./docker/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      UPSTREAM: qa:8000
+    depends_on:
+      - qa
+volumes:
+  php_vendor:

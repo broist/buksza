@@ -1,0 +1,16 @@
+# Buksza – projektútmutató
+
+- A mérvadó specifikáció: `../docs/penzugyi-webapp-specifikacio.md`. A beszélgetésben adott felhasználói döntések elsőbbséget élveznek.
+- Az első két fázis elkészült. A felhasználó jóváhagyta a 3. fázist; a helyi funkciók elkészültek, tényleges iPhone-push/AWS ellenőrzés még hátravan. Cél: Ubuntu, buksza.duktor.hu, 35.158.45.80; Cloudflare DNS only rekord. A felhasználó saját futtatású telepítőscriptet kért; elkészült a dist/buksza-telepito.sh, használat: ../docs/TELEPITES-UBUNTU.md. SSH-elérést nem kell kérni a script készítéséhez. Részletek: `../docs/PHASE-3.md`, `../docs/PUSH-IPHONE.md`. A 4. fázis többi modulja előtt megállás és új jóváhagyás szükséges.
+- Minden képernyő először 360 px-re készül és ellenőrizendő; csak utána bővíthető asztalira.
+- Az AWS Ubuntu 24.04.5 LTS szerveren már Nginx szolgálja ki a kcal.duktor.hu és monitor.acuwall.hu oldalakat. A Buksza telepítése `sudo bash buksza-telepito.sh --existing-nginx`: csak saját conf.d fájl, saját Certbot-tanúsítvány, Docker web loopback 18083 (foglaltságnál 18084–18099). Meglévő oldalak konfigurációját/tanúsítványát nem írjuk át; Nginx újratöltés, saját megújító hook és timer. Caddy-mód üres szerverhez használható.
+- PHP és Composer Dockerben érhető el. A projekt gyökeréből `docker compose exec -T app php ...`, illetve `docker compose exec -T app composer ...` használható. Natív PHP telepítése és a felhasználó termináljának újraindítása nem szükséges.
+- Laravel 13, Inertia 3, React/TypeScript, Tailwind 4, SQLite; Laravel Boost fejlesztői függőségként telepítve. Az AWS a későbbi telepítés célja.
+- A 4. fejezet minden számításához a közös `app/Finance/Calculator.php` és az `Exact.php` használandó. Ne hozz létre eltérő frontend számításokat. Örs külön befizetése csökkenti a CF-et, és nem teljesíti a családi megtakarítási célt.
+- A kézi bevitel az alap; import és offline rögzítési sor nincs az első négy fázisban.
+- A saját adatbázist soha ne állítsd alaphelyzetbe tesztelés céljából. PHPUnit kizárólag `:memory:` adatbázissal futhat; a tesztalap ezt ellenőrzi. A böngészőtesztek külön `qa.sqlite`-ot használnak.
+- A `QaSeeder` csak tesztkörnyezetben, a `qa.sqlite` adatbázisba írhat mintákat. Saját alkalmazásba soha ne írj fiktív pénzügyi adatot vagy előre megadott belépési jelszót.
+- Backend ellenőrzés: `docker compose exec -T app php artisan test --no-ansi` a projekt gyökeréből. Frontend: `npm run build` a webapp könyvtárában. Böngészős ellenőrzések és a tesztkörnyezet indítása a gyökér README-ben.
+- PHP változtatásoknál futtasd a Pint formázót, és a megváltozott működést lefedő teszteket. A 360/390/430/768/1280 px-es és hozzáférhetőségi ellenőrzéseket releváns felületi változás esetén végezd el.
+- Ne mutasd az Anna-féle havi pillanatképet számított napi egyenlegként, és ne generálj belőle bevételt/kiadást.
+- A telefonos értesítések a 3. fázisban a webapp szerveroldali funkciói lesznek, nem Codex-chat automatizálások.

@@ -1,0 +1,14 @@
+**/.env
+**/*.sqlite*
+**/node_modules
+**/vendor
+**/storage
+**/bootstrap/cache/*.php
+**/public/build
+.git
+dist
+test-results
+**/playwright-report
+docs
+webapp/tests
+webapp/scripts
