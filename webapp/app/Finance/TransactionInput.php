@@ -4,6 +4,7 @@ namespace App\Finance;
 
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\Investment;
 use App\Models\Loan;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -116,6 +117,12 @@ final class TransactionInput
         }
         if ($type !== 'transfer') {
             $data['fee_amount'] = 0;
+        }
+        if ($old?->investment_id) {
+            $investment = Investment::findOrFail($old->investment_id);
+            if ($type !== 'child_saving' || $target?->id != $investment->account_id || $data['date'] < $investment->start_date) {
+                $this->error('type', 'Előbb bontsd a babakötvény kapcsolatát a Befektetéseim oldalon.');
+            }
         }
         $person = $data['person'] ?? ($sameRoute ? $old->person : null);
         $people = Account::pluck('owner')->push('Isti')->push('Anna')->push('közös')->push('Örs')->unique()->all();

@@ -12,9 +12,9 @@ COPY webapp/composer.json webapp/composer.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --optimize-autoloader
 
 FROM php:8.5-fpm-alpine AS app
-RUN apk add --no-cache su-exec \
-    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
-    && docker-php-ext-install -j2 bcmath \
+RUN apk add --no-cache su-exec libzip \
+    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libzip-dev \
+    && docker-php-ext-install -j2 bcmath zip \
     && apk del .build-deps
 WORKDIR /app
 COPY webapp/ /app/

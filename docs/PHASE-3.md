@@ -1,6 +1,6 @@
 # 3. fázis – esti rögzítés, rendszeres tételek és emlékeztetők
 
-Állapot (2026.10.15.): **a funkciók és az AWS/HTTPS telepítés elkészültek; a tényleges iPhone-os fogadási próba még hátravan.** A felhasználó sikeres telepítést jelzett; a `https://buksza.duktor.hu/up` és `/belepes` HTTPS-en 200 választ ad. A 4. fázis további moduljai még nem készültek el.
+Állapot (2026.10.15.): **a funkciók és az AWS/HTTPS telepítés elkészültek; a tényleges iPhone-os fogadási próba még hátravan.** A felhasználó sikeres telepítést jelzett; a `https://buksza.duktor.hu/up` és `/belepes` HTTPS-en 200 választ ad. A 4. fázis később elkészült moduljait a [PHASE-4.md](PHASE-4.md) ismerteti.
 
 ## A felületen kipróbálható
 

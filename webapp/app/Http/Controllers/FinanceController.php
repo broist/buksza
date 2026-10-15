@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Finance\Calculator;
+use App\Finance\PhaseFourReports;
 use App\Finance\PlanStore;
 use App\Finance\PlanSuggestions;
 use App\Finance\RecurringStore;
@@ -15,6 +16,7 @@ use App\Notifications\PushSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -84,7 +86,7 @@ class FinanceController extends Controller
         return Inertia::render('Finance', [
             'year' => $year, 'month' => $month, 'today' => now()->toDateString(),
             'view' => match ($request->path()) {
-                'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', default => 'overview'
+                'honap' => 'month', 'tervezes' => 'plans', 'beallitasok' => 'settings', 'eves' => 'annual', 'szamlak' => 'accounts', 'hitelek' => 'loans', 'rendszeres' => 'recurring', 'esti-rogzites' => 'evening', 'zsebpenzek' => 'pockets', 'befektetesek' => 'investments', default => 'overview'
             },
             'categories' => $categories, 'settings' => $settings, 'report' => $report['months'][$month], 'annual' => $report['annual'],
             'scopedReport' => $scoped['months'][$month], 'filters' => ['account_id' => $scopeAccount, 'person' => $scopePerson],
@@ -100,6 +102,11 @@ class FinanceController extends Controller
             'monthComplete' => (bool) DB::table('month_observations')->where('year', $year)->where('month', $month)->value('complete'),
             'suggestions' => app(PlanSuggestions::class)->calculate($year, $month, $categories, $allTransactions, DB::table('month_observations')->get()->map(fn ($r) => (array) $r)->all()),
             'push' => app(PushSettings::class)->forUser($request->user()->id),
+            'yearMonths' => array_values($report['months']), 'yearTransactions' => $transactions,
+            'pockets' => app(PhaseFourReports::class)->pockets($year, $transactions, $accounts),
+            'investments' => app(PhaseFourReports::class)->investments($year, $month, $allTransactions),
+            'passkeys' => DB::table('passkeys')->where('user_id', $request->user()->id)->get(['id', 'name', 'created_at', 'last_used_at']),
+            'hasRestoreBackup' => count(Storage::disk('local')->files('finance-backups')) > 0,
         ]);
     }
 

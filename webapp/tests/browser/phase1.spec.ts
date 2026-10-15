@@ -15,7 +15,7 @@ test('mobile first: all screens fit the SPEC viewport sizes',async({page})=>{
     fs.mkdirSync(out,{recursive:true});
     for(const [width,height] of [[360,800],[390,844],[430,932],[768,1024],[1280,900]]) {
         await page.setViewportSize({width,height});
-        for(const route of ['/','/honap','/tervezes','/beallitasok','/eves','/szamlak','/hitelek','/rendszeres','/esti-rogzites']) {
+        for(const route of ['/','/honap','/tervezes','/beallitasok','/eves','/szamlak','/hitelek','/rendszeres','/esti-rogzites','/zsebpenzek','/befektetesek']) {
             await page.goto(route);await expect(page.locator('h1')).toBeVisible();
             const dimensions=await page.evaluate(()=>({width:innerWidth,body:document.documentElement.scrollWidth}));
             expect(dimensions.body,`${route} at ${width}px has no horizontal overflow`).toBeLessThanOrEqual(dimensions.width);

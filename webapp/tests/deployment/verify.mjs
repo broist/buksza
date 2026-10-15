@@ -48,6 +48,26 @@ try {
     assert.deepEqual(errors,[]);
     const manifest=await (await context.request.get('https://localhost:18443/manifest.webmanifest')).json();assert.equal(manifest.name,'Buksza');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
+    for(const route of ['/zsebpenzek','/befektetesek','/eves']){
+        await page.goto('https://localhost:18443'+route);
+        await page.locator('h1').waitFor();
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),360);
+    }
+    const exported=await context.request.get('https://localhost:18443/export?year=2026&format=xlsx');
+    assert.equal(exported.status(),200);assert.equal((await exported.body()).subarray(0,2).toString(),'PK');
+    const backup=await context.request.get('https://localhost:18443/mentes');
+    assert.equal(backup.status(),200);assert(!((await backup.text()).includes('installer-qa@example.test')));
+    const webauthn=await context.newCDPSession(page);await webauthn.send('WebAuthn.enable');
+    await webauthn.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,automaticPresenceSimulation:true}});
+    await page.goto('https://localhost:18443/beallitasok');
+    await page.getByLabel('Passkey neve',{exact:true}).fill('Production QA passkey');
+    await page.getByLabel('Jelenlegi jelszó a passkey kezeléséhez',{exact:true}).fill(password);
+    await page.getByRole('button',{name:'Új passkey hozzáadása',exact:true}).click();
+    await page.locator('.p4-month').filter({hasText:'Production QA passkey'}).waitFor();
+    await page.getByRole('button',{name:'Továbbiak',exact:true}).click();
+    await page.locator('dialog').getByRole('button',{name:'Kilépés',exact:true}).click();
+    await page.getByRole('button',{name:'Belépés passkeyjel',exact:true}).click();
+    await page.getByRole('heading',{name:'Szia, Telepítő QA!'}).waitFor();
     await page.screenshot({path:resolve(root,'docs/screenshots/installer-qa-360.png'),fullPage:true});
-    console.log('Production QA: HTTPS/FPM, protected setup link, secure session, actual entry, persistent database/session after restart, existing push key, PWA and 360px passed.');
+    console.log('Production QA: HTTPS/FPM, protected setup, actual entry, restart persistence, push key, PWA, 360px, phase four pages, XLSX/encrypted backup and real passkey registration/login passed.');
 } finally {await browser.close();}

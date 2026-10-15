@@ -142,6 +142,8 @@ class CalculatorTest extends TestCase
             self::assertSame($days, $a['daysCount']);
             self::assertSame(120000, $a['expense']);
             self::assertSame(360000, $a['income']);
+            $this->exact(324000, $a['usableIncome']);
+            $this->exact(36000, $a['savingsRemaining']);
             $this->exact(10000, $a['monthlyExpenseAverage']);
             $this->exact("120000/$days", $a['dailyExpenseAverage']);
             $this->exact(30000, $a['monthlyIncomeAverage']);
@@ -169,9 +171,9 @@ class CalculatorTest extends TestCase
     public function test_exact_money_never_rounds_and_exposes_fraction(): void
     {
         $value = (new Exact(1000))->divide(3)->jsonSerialize();
-        self::assertSame('1000/3',$value['exact']);
-        self::assertSame('333,333333…',$value['text']);
-        self::assertSame('875,875',(new Exact('875.875'))->jsonSerialize()['text']);
-        self::assertSame('−1 234',(new Exact(-1234))->jsonSerialize()['text']);
+        self::assertSame('1000/3', $value['exact']);
+        self::assertSame('333,333333…', $value['text']);
+        self::assertSame('875,875', (new Exact('875.875'))->jsonSerialize()['text']);
+        self::assertSame('−1 234', (new Exact(-1234))->jsonSerialize()['text']);
     }
 }

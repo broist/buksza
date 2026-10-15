@@ -11,6 +11,7 @@
         "inertiajs/inertia-laravel": "^3.5",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
+        "lbuchs/webauthn": "^2.2",
         "minishlink/web-push": "^11.0"
     },
     "require-dev": {

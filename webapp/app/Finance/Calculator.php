@@ -182,7 +182,7 @@ final class Calculator
             $sources[$name] = ['total' => $amount, 'monthlyAverage' => (new Exact($amount))->divide(12), 'dailyAverage' => (new Exact($amount))->divide($yearDays)];
         }
 
-        return ['months' => $months, 'annual' => ['daysCount' => $yearDays, 'categories' => $annualRows, 'incomeSources' => $sources, 'expense' => $annualExpense, 'income' => $gross, 'monthlyExpenseAverage' => (new Exact($annualExpense))->divide(12), 'dailyExpenseAverage' => (new Exact($annualExpense))->divide($yearDays), 'monthlyIncomeAverage' => (new Exact($gross))->divide(12), 'dailyIncomeAverage' => (new Exact($gross))->divide($yearDays), 'savingsTarget' => $totalSavings, 'actualSavings' => $totalActual, 'childSavings' => $totalChild, 'cf' => $totalCf, 'monthlyCf' => $totalCf->divide(12), 'dailyCf' => $totalCf->divide($yearDays), 'closing' => $opening]];
+        return ['months' => $months, 'annual' => ['daysCount' => $yearDays, 'categories' => $annualRows, 'incomeSources' => $sources, 'expense' => $annualExpense, 'income' => $gross, 'monthlyExpenseAverage' => (new Exact($annualExpense))->divide(12), 'dailyExpenseAverage' => (new Exact($annualExpense))->divide($yearDays), 'monthlyIncomeAverage' => (new Exact($gross))->divide(12), 'dailyIncomeAverage' => (new Exact($gross))->divide($yearDays), 'savingsTarget' => $totalSavings, 'usableIncome' => (new Exact($gross))->minus($totalSavings), 'savingsRemaining' => $totalSavings->minus($totalActual), 'actualSavings' => $totalActual, 'childSavings' => $totalChild, 'cf' => $totalCf, 'monthlyCf' => $totalCf->divide(12), 'dailyCf' => $totalCf->divide($yearDays), 'closing' => $opening]];
     }
 
     public function accountBalance(array $account, array $transactions, string $through): int
